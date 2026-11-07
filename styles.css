@@ -91,3 +91,14 @@ footer{padding:16px 0}
 .history-dialog .start-button{margin-top:16px}
 .quick-anonymous{display:flex;align-items:center;justify-content:center;gap:8px;margin:0 0 13px;color:#b4d3b7;font-size:10px;cursor:pointer}
 .quick-anonymous input{accent-color:#a4c6a8}
+
+/* Live interest-group member list and reporting */
+.group-members-panel{padding:8px 18px 7px;border-bottom:1px solid #30332f;background:#1b1e1b;max-height:105px;overflow:auto}
+.group-members-heading{display:flex;align-items:center;justify-content:space-between;margin-bottom:5px}
+.group-members-heading strong{font:600 9px 'DM Sans';color:#c7d9c8}
+.group-members-heading button,.member-report-button{border:0;background:transparent;color:#b4d3b7;font:500 9px 'DM Sans';cursor:pointer}
+.group-members-list{display:flex;flex-wrap:wrap;gap:5px 12px}
+.group-member-row{display:flex;align-items:center;gap:5px;min-width:42%;padding:2px 0}
+.group-member-name{font-size:9px;color:#c6cbc3;overflow-wrap:anywhere}
+.member-report-button{padding:2px 5px;border:1px solid #41483f;border-radius:4px;font-size:8px}
+@media(max-width:430px){.group-members-panel{max-height:90px}.group-member-row{min-width:46%}}
