@@ -22,6 +22,8 @@ let currentChannel = null;
 let currentUserId = null;
 let currentUsername = null;
 let matchLoop = null;
+let searchToken = 0;
+let matchRequestInFlight = false;
 let chatMode = 'one';
 let reportBusy = false;
 const activeRoomKey = (userId) => `after-dark-active-room:${userId}`;
@@ -122,6 +124,7 @@ async function detachRoom() {
   currentRoomId = null;
 }
 async function resetChat() {
+  searchToken += 1;
   await detachRoom();
   conversation.classList.add('hidden');
   waitingState.classList.add('hidden');
@@ -189,7 +192,10 @@ async function openRoom(roomId) {
       }
     });
 }
-async function lookForMatch(preferences) {
+async function lookForMatch(preferences, token) {
+  if (matchRequestInFlight || token !== searchToken) return;
+  matchRequestInFlight = true;
+  try {
   const { data: roomId, error } = await supabaseClient.rpc('find_after_dark_chat', {
     p_gender: preferences.gender,
     p_country: preferences.country,
@@ -197,10 +203,14 @@ async function lookForMatch(preferences) {
     p_preferred_country: preferences.preferredCountry
   });
   if (error) throw error;
+  if (token !== searchToken) return;
   if (roomId) {
     clearInterval(matchLoop);
     matchLoop = null;
     await openRoom(roomId);
+  }
+  } finally {
+    matchRequestInFlight = false;
   }
 }
 async function startSearch() {
@@ -221,6 +231,7 @@ async function startSearch() {
     showToast('Choose your gender and country first.');
     return;
   }
+  const token = ++searchToken;
   startButton.disabled = true;
   emptyState.classList.add('hidden');
   conversation.classList.add('hidden');
@@ -232,14 +243,19 @@ async function startSearch() {
     await ensureSignedIn();
     await recoverInterruptedChat();
     await loadLastChatPreview();
-    await lookForMatch(preferences);
-    if (!currentRoomId) {
-      matchLoop = setInterval(() => lookForMatch(preferences).catch((error) => { showToast(error.message); resetChat(); }), 1800);
+    if (token !== searchToken) return;
+    await lookForMatch(preferences, token);
+    if (!currentRoomId && token === searchToken) {
+      matchLoop = setInterval(() => lookForMatch(preferences, token).catch((error) => {
+        if (token === searchToken) { showToast(error.message || 'Matchmaking stopped. Please try again.'); resetChat(); }
+      }), 1800);
       showToast('Looking for someone. Keep this page open.');
     }
   } catch (error) {
-    resetChat();
-    showToast(error.message || 'Could not connect. Check your Supabase setup.');
+    if (token === searchToken) {
+      await resetChat();
+      showToast(error.message || 'Could not connect. Check your Supabase setup.');
+    }
   } finally {
     startButton.disabled = false;
   }
