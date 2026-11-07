@@ -1,0 +1,64 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#f7f6f2">
+  <title>After Dark — meet someone new</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#home" aria-label="After Dark home"><span class="brand-mark" aria-hidden="true"><svg viewBox="0 0 32 32"><path d="M20.7 5.4a11.2 11.2 0 1 0 5.9 19.9A12.5 12.5 0 0 1 20.7 5.4Z"/><path class="brand-star" d="m24.7 4.1.9 2.4 2.4.9-2.4.9-.9 2.4-.9-2.4-2.4-.9 2.4-.9Z"/></svg></span><span>After Dark</span></a>
+    <div class="top-note"><span class="live-dot"></span> A little corner of the internet</div>
+    <button class="text-button" id="safety-link">Safety first</button>
+  </header>
+
+  <main id="home" class="layout">
+    <section class="intro">
+      <div class="eyebrow"><span class="sparkle">✳</span> SMALL TALK, BIG WORLD</div>
+      <h1>There’s someone<br>you haven’t met <em>yet.</em></h1>
+      <p class="intro-copy">A simple, one-on-one conversation with someone somewhere out there. No profiles to polish. Just say hello.</p>
+      <div class="trust-row">
+        <span><b>↗</b> No account needed</span>
+        <span><b>◎</b> One conversation at a time</span>
+      </div>
+      <div class="note-card"><span class="note-icon">✦</span><div><strong>A small reminder</strong><p>Keep personal details private. You can leave any conversation whenever you like.</p></div></div>
+    </section>
+
+    <section class="chat-card" aria-label="Stranger chat demo">
+      <div class="card-head">
+        <div><div class="card-kicker">YOUR NEXT CONVERSATION</div><h2 id="card-title">Ready when you are</h2></div>
+        <span class="status-pill" id="status-pill"><span class="status-dot"></span><span id="status-text">YOUR CALL</span></span>
+      </div>
+      <div class="chat-stage" id="chat-stage">
+        <div class="empty-state" id="empty-state">
+          <div class="orbit orbit-one"></div><div class="orbit orbit-two"></div>
+          <div class="hello-bubble">✳</div>
+          <span class="float-dot dot-a"></span><span class="float-dot dot-b"></span><span class="float-dot dot-c"></span>
+          <p>One curious human,<br>coming right up.</p>
+          <small>It starts with a simple hello.</small>
+        </div>
+        <div class="waiting-state hidden" id="waiting-state"><div class="loader"><span></span><span></span><span></span></div><h3>Finding your person</h3><p>Good conversations start anywhere.</p><button class="text-button cancel-link" id="cancel-button">Cancel</button></div>
+        <div class="conversation hidden" id="conversation">
+          <div class="stranger-row"><div class="avatar" id="avatar">M</div><div><strong id="stranger-name">Milo</strong><span><i class="online-dot"></i><span id="stranger-detail" class="stranger-detail">connected just now</span></span></div><button class="icon-button" id="report-button" title="Report conversation" aria-label="Report conversation"><span aria-hidden="true">⚑</span><span class="report-label">Report</span></button></div>
+          <div class="message-list" id="message-list" aria-live="polite"><div class="time-divider">YOU’RE BOTH HERE · SAY HELLO</div><div class="message theirs"><span class="message-author" id="message-author">Milo</span><p id="opening-message">Hey! What’s something good that happened today?</p><time>just now</time></div></div>
+          <form class="message-form" id="message-form"><label class="sr-only" for="message-input">Write a message</label><input id="message-input" maxlength="500" autocomplete="off" placeholder="Write something kind…"><button type="submit" aria-label="Send message">↑</button></form>
+          <div class="chat-actions"><span class="privacy-reminder"><span class="lock-icon">⌑</span> Keep it kind, keep it private</span><div class="action-buttons"><button id="leave-button">Leave</button><button id="skip-button"><span id="skip-label">Meet someone else</span> <span>↗</span></button></div></div>
+        </div>
+      </div>
+      <div class="card-foot" id="card-foot"><div class="mode-switch" role="tablist" aria-label="Conversation type"><button class="mode-tab active" id="mode-one" role="tab" aria-selected="true">1:1 chat</button><button class="mode-tab" id="mode-group" role="tab" aria-selected="false">Interest groups</button></div><label class="quick-anonymous" id="quick-anonymous-row" for="quick-anonymous"><input id="quick-anonymous" type="checkbox"> Quick anonymous chat · use a random name</label><div class="preferences" id="one-preferences"><label>I am<select id="self-gender" aria-label="Your gender"><option value="" selected disabled>Choose…</option><option value="woman">A woman</option><option value="man">A man</option><option value="nonbinary">Nonbinary</option><option value="prefer_not_to_say">Prefer not to say</option></select></label><label>My country<select id="self-country" aria-label="Your country"><option value="" selected disabled>Choose…</option><option value="India">India</option><option value="United States">United States</option><option value="United Kingdom">United Kingdom</option><option value="Brazil">Brazil</option><option value="Japan">Japan</option><option value="other">Other / prefer not to say</option></select></label><label>Meet<select id="gender-preference" aria-label="Gender preference"><option value="any">Anyone</option><option value="woman">Women</option><option value="man">Men</option><option value="nonbinary">Nonbinary people</option></select></label><label>Location<select id="location-preference" aria-label="Location preference"><option value="anywhere">Anywhere</option><option value="India">India</option><option value="United States">United States</option><option value="United Kingdom">United Kingdom</option><option value="Brazil">Brazil</option><option value="Japan">Japan</option></select></label></div><div class="preferences hidden" id="group-preferences"><label class="interest-select">Your interest<select id="interest-preference" aria-label="Choose an interest"><option value="music">Music</option><option value="movies">Movies &amp; TV</option><option value="gaming">Gaming</option><option value="travel">Travel</option><option value="books">Books</option><option value="food">Food</option><option value="art">Art</option><option value="tech">Technology</option></select></label><p class="group-hint">Join a small chat with people who like the same things.</p></div><button class="start-button" id="start-button"><span>Find someone to talk to</span><span class="arrow">↗</span></button><p id="preference-note">Your choices are used only to find a compatible match</p><button class="history-link hidden" id="history-button" type="button">View your last chat</button></div>
+      <div class="demo-label">LIVE 1:1 CHAT · GROUPS PREVIEW</div>
+    </section>
+  </main>
+  <footer><span>© 2026 After Dark</span><span>Made for the moments between everything.</span><button id="footer-safety">A note on staying safe</button></footer>
+
+  <dialog id="history-dialog" class="history-dialog"><button class="dialog-close" id="close-history" aria-label="Close">×</button><div class="eyebrow">JUST FOR YOU</div><h2>Your last chat</h2><p class="history-caption">Only your most recent conversation is kept here.</p><div class="history-messages" id="history-messages"></div><button class="start-button dialog-done" id="history-done">Close</button></dialog>
+  <dialog id="safety-dialog"><button class="dialog-close" id="close-dialog" aria-label="Close">×</button><div class="eyebrow">A FEW GOOD RULES</div><h2>Keep the conversation comfortable.</h2><ul><li>Don’t share your full name, address, phone number, passwords, or financial details.</li><li>You can skip someone or leave at any time, for any reason.</li><li>Use Report if someone makes you uncomfortable. Be kind to the person on the other side.</li><li>Conversations connect you to other visitors. Never share personal details.</li></ul><button class="start-button dialog-done" id="dialog-done">Got it</button></dialog>
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
+  <script src="app.js"></script>
+</body>
+</html>
+
