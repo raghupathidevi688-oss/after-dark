@@ -28,6 +28,7 @@ let searchToken = 0;
 let matchRequestInFlight = false;
 let chatMode = 'one';
 let reportBusy = false;
+let groupMembersBusy = false;
 const activeRoomKey = (userId) => `after-dark-active-room:${userId}`;
 
 function showToast(text) {
@@ -172,6 +173,8 @@ async function openRoom(roomId, roomType = 'direct', interest = null) {
   $('avatar').textContent = roomType === 'interest' ? '#' : '✳';
   $('avatar').style.background = '#2b392d';
   $('report-button').classList.toggle('hidden', roomType === 'interest');
+  $('group-members-panel').classList.toggle('hidden', roomType !== 'interest');
+  skipButton.classList.toggle('hidden', roomType === 'interest');
   setConnectionStatus(true);
   waitingState.classList.add('hidden');
   emptyState.classList.add('hidden');
@@ -183,6 +186,9 @@ async function openRoom(roomId, roomType = 'direct', interest = null) {
   currentChannel = supabaseClient.channel(roomId, { config: { private: true } })
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages', filter: `room_id=eq.${roomId}` }, (payload) => {
       if (currentRoomId === roomId) showMessage(payload.new);
+    })
+    .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_members', filter: `room_id=eq.${roomId}` }, () => {
+      if (currentRoomId === roomId && currentRoomType === 'interest') loadGroupMembers(roomId);
     })
     .subscribe(async (status, error) => {
       if (currentRoomId !== roomId) return;
@@ -198,6 +204,61 @@ async function openRoom(roomId, roomType = 'direct', interest = null) {
         showToast('Live updates are unavailable. Check the Supabase Realtime setup.');
       }
     });
+  if (roomType === 'interest') await loadGroupMembers(roomId);
+}
+async function loadGroupMembers(roomId) {
+  if (groupMembersBusy || currentRoomId !== roomId) return;
+  groupMembersBusy = true;
+  try {
+    const { data, error } = await supabaseClient.from('chat_members')
+      .select('user_id,joined_at').eq('room_id', roomId).order('joined_at', { ascending: true });
+    if (error) throw error;
+    if (currentRoomId !== roomId) return;
+    const members = data || [];
+    $('group-member-count').textContent = members.length + (members.length === 1 ? ' member here' : ' members here');
+    const list = $('group-members-list');
+    list.innerHTML = '';
+    members.forEach((member) => {
+      const row = document.createElement('div');
+      row.className = 'group-member-row';
+      const name = document.createElement('span');
+      name.className = 'group-member-name';
+      name.textContent = member.user_id === currentUserId ? currentUsername + ' (you)' : 'Guest-' + member.user_id.slice(0, 4).toUpperCase();
+      row.append(name);
+      if (member.user_id !== currentUserId) {
+        const report = document.createElement('button');
+        report.type = 'button';
+        report.className = 'member-report-button';
+        report.textContent = 'Report';
+        report.addEventListener('click', () => reportGroupMember(roomId, member.user_id));
+        row.append(report);
+      }
+      list.append(row);
+    });
+  } catch (error) {
+    if (currentRoomId === roomId) showToast('Could not load the group member list.');
+    console.error('Group member list error:', error);
+  } finally {
+    groupMembersBusy = false;
+  }
+}
+async function reportGroupMember(roomId, reportedUserId) {
+  if (currentRoomId !== roomId || reportBusy) return;
+  if (!window.confirm('Report this member? Your report will be sent and you will leave this group.')) return;
+  reportBusy = true;
+  try {
+    const { error } = await supabaseClient.rpc('report_after_dark_group_member', {
+      target_room_id: roomId,
+      reported_user_id: reportedUserId
+    });
+    if (error) throw error;
+    await resetChat();
+    showToast('Report sent. You have left the group.');
+  } catch (error) {
+    showToast(error.message || 'Could not send the report. Please try again.');
+  } finally {
+    reportBusy = false;
+  }
 }
 function groupLabel(interest) {
   const labels = {
@@ -309,6 +370,11 @@ async function startSearch() {
 startButton.addEventListener('click', startSearch);
 cancelButton.addEventListener('click', resetChat);
 async function skipChat() {
+  if (currentRoomType === 'interest') {
+    await resetChat();
+    showToast('You left the group.');
+    return;
+  }
   await resetChat();
   showToast('Looking for someone new…');
   startSearch();
@@ -317,6 +383,11 @@ skipButton.addEventListener('click', skipChat);
 leaveButton.addEventListener('click', () => { resetChat(); showToast('You left the chat.'); });
 $('mode-one').addEventListener('click', () => setMode('one'));
 $('mode-group').addEventListener('click', () => setMode('group'));
+$('toggle-group-members').addEventListener('click', () => {
+  const list = $('group-members-list');
+  const isHidden = list.classList.toggle('hidden');
+  $('toggle-group-members').textContent = isHidden ? 'Show' : 'Hide';
+});
 function setMode(mode) {
   chatMode = mode;
   $('mode-one').classList.toggle('active', mode === 'one');
@@ -327,7 +398,7 @@ function setMode(mode) {
   $('one-preferences').classList.toggle('hidden', mode !== 'one' || $('quick-anonymous').checked);
   $('group-preferences').classList.toggle('hidden', mode !== 'group');
   $('start-button').querySelector('span').textContent = mode === 'group' ? 'Join an interest group' : ($('quick-anonymous').checked ? 'Start anonymous chat' : 'Find someone to talk to');
-  $('skip-label').textContent = mode === 'group' ? 'Try another group' : 'Meet someone else';
+  $('skip-label').textContent = mode === 'group' ? 'Leave group' : 'Meet someone else';
   $('preference-note').textContent = mode === 'group' ? 'Meet up to 19 others who are into the same things' : ($('quick-anonymous').checked ? 'No profile details needed · a random name keeps you anonymous' : 'Matching respects both users’ choices');
 }
 $('quick-anonymous').addEventListener('change', () => {
