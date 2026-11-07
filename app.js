@@ -18,6 +18,8 @@ const cardTitle = $('card-title');
 const messageList = $('message-list');
 const dialog = $('safety-dialog');
 let currentRoomId = null;
+let currentRoomType = 'direct';
+let currentInterest = null;
 let currentChannel = null;
 let currentUserId = null;
 let currentUsername = null;
@@ -122,6 +124,8 @@ async function detachRoom() {
     }
   }
   currentRoomId = null;
+  currentRoomType = 'direct';
+  currentInterest = null;
 }
 async function resetChat() {
   searchToken += 1;
@@ -147,7 +151,7 @@ function showMessage(row) {
     author.textContent = row.sender_name || (row.sender_id === currentUserId ? 'You' : 'Stranger');
     item.append(author);
   }
-  if (row.sender_id !== currentUserId) $('stranger-name').textContent = row.sender_name || 'A stranger';
+  if (currentRoomType === 'direct' && row.sender_id !== currentUserId) $('stranger-name').textContent = row.sender_name || 'A stranger';
   const body = document.createElement('p');
   body.textContent = row.body;
   const time = document.createElement('time');
@@ -156,23 +160,26 @@ function showMessage(row) {
   messageList.append(item);
   messageList.scrollTop = messageList.scrollHeight;
 }
-async function openRoom(roomId) {
+async function openRoom(roomId, roomType = 'direct', interest = null) {
   currentRoomId = roomId;
+  currentRoomType = roomType;
+  currentInterest = interest;
   if (currentUserId) {
     try { localStorage.setItem(activeRoomKey(currentUserId), roomId); } catch (_) {}
   }
   messageList.innerHTML = '<div class="time-divider">YOU’RE BOTH HERE · SAY HELLO</div>';
-  $('stranger-name').textContent = 'A stranger';
-  $('avatar').textContent = '✳';
+  $('stranger-name').textContent = roomType === 'interest' ? '# ' + groupLabel(interest) : 'A stranger';
+  $('avatar').textContent = roomType === 'interest' ? '#' : '✳';
   $('avatar').style.background = '#2b392d';
+  $('report-button').classList.toggle('hidden', roomType === 'interest');
   setConnectionStatus(true);
   waitingState.classList.add('hidden');
   emptyState.classList.add('hidden');
   conversation.classList.remove('hidden');
   $('card-foot').classList.add('hidden');
   chatCard.classList.add('is-chatting');
-  statusText.textContent = 'CONNECTED';
-  cardTitle.textContent = 'A new conversation';
+  statusText.textContent = roomType === 'interest' ? 'GROUP CHAT' : 'CONNECTED';
+  cardTitle.textContent = roomType === 'interest' ? groupLabel(interest) + ' is your room' : 'A new conversation';
   currentChannel = supabaseClient.channel(roomId, { config: { private: true } })
     .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages', filter: `room_id=eq.${roomId}` }, (payload) => {
       if (currentRoomId === roomId) showMessage(payload.new);
@@ -191,6 +198,45 @@ async function openRoom(roomId) {
         showToast('Live updates are unavailable. Check the Supabase Realtime setup.');
       }
     });
+}
+function groupLabel(interest) {
+  const labels = {
+    anime: 'Anime Universe', memes: 'Meme Lab', 'bad-jokes': 'Bad Jokes Club',
+    'random-chaos': 'Random Chaos', gaming: 'Gaming', music: 'Music',
+    movies: 'Movies & TV', travel: 'Travel', books: 'Books',
+    food: 'Food', art: 'Art', tech: 'Technology'
+  };
+  return labels[interest] || 'Interest Group';
+}
+async function startGroupSearch() {
+  const interest = $('interest-preference').value;
+  const token = ++searchToken;
+  startButton.disabled = true;
+  emptyState.classList.add('hidden');
+  conversation.classList.add('hidden');
+  waitingState.classList.remove('hidden');
+  $('card-foot').classList.add('hidden');
+  statusText.textContent = 'JOINING';
+  cardTitle.textContent = 'Finding your group';
+  try {
+    await ensureSignedIn();
+    await recoverInterruptedChat();
+    await loadLastChatPreview();
+    if (token !== searchToken) return;
+    const { data: roomId, error } = await supabaseClient.rpc('find_after_dark_group', { p_interest: interest });
+    if (error) throw error;
+    if (token !== searchToken) return;
+    if (!roomId) throw new Error('Could not join this group. Please try again.');
+    await openRoom(roomId, 'interest', interest);
+    showToast('You joined ' + groupLabel(interest) + '.');
+  } catch (error) {
+    if (token === searchToken) {
+      await resetChat();
+      showToast(error.message || 'Could not join the group. Please try again.');
+    }
+  } finally {
+    startButton.disabled = false;
+  }
 }
 async function lookForMatch(preferences, token) {
   if (matchRequestInFlight || token !== searchToken) return;
@@ -215,7 +261,7 @@ async function lookForMatch(preferences, token) {
 }
 async function startSearch() {
   if (chatMode === 'group') {
-    showToast('Interest groups are still a preview. Real matching is available for 1:1 chats.');
+    await startGroupSearch();
     return;
   }
   const quickAnonymous = $('quick-anonymous').checked;
@@ -280,9 +326,9 @@ function setMode(mode) {
   $('quick-anonymous-row').classList.toggle('hidden', mode !== 'one');
   $('one-preferences').classList.toggle('hidden', mode !== 'one' || $('quick-anonymous').checked);
   $('group-preferences').classList.toggle('hidden', mode !== 'group');
-  $('start-button').querySelector('span').textContent = mode === 'group' ? 'Preview interest groups' : ($('quick-anonymous').checked ? 'Start anonymous chat' : 'Find someone to talk to');
+  $('start-button').querySelector('span').textContent = mode === 'group' ? 'Join an interest group' : ($('quick-anonymous').checked ? 'Start anonymous chat' : 'Find someone to talk to');
   $('skip-label').textContent = mode === 'group' ? 'Try another group' : 'Meet someone else';
-  $('preference-note').textContent = mode === 'group' ? 'Interest groups are coming soon' : ($('quick-anonymous').checked ? 'No profile details needed · a random name keeps you anonymous' : 'Matching respects both users’ choices');
+  $('preference-note').textContent = mode === 'group' ? 'Meet up to 19 others who are into the same things' : ($('quick-anonymous').checked ? 'No profile details needed · a random name keeps you anonymous' : 'Matching respects both users’ choices');
 }
 $('quick-anonymous').addEventListener('change', () => {
   const enabled = $('quick-anonymous').checked;
@@ -296,7 +342,7 @@ $('message-form').addEventListener('submit', async (event) => {
   const body = input.value.trim();
   if (!body || !currentRoomId) return;
   input.value = '';
-  const senderName = $('quick-anonymous').checked ? currentUsername : null;
+  const senderName = currentRoomType === 'interest' || $('quick-anonymous').checked ? currentUsername : null;
   const { data, error } = await supabaseClient.from('chat_messages').insert({ room_id: currentRoomId, sender_id: currentUserId, sender_name: senderName, body }).select('id,sender_id,sender_name,body,created_at').single();
   if (error) { showToast('Message could not be sent. Try again.'); input.value = body; return; }
   showMessage(data);
