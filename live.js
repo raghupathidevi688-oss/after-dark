@@ -21,6 +21,7 @@
   async function getMedia(){
     if(!navigator.mediaDevices?.getUserMedia)throw new Error('Camera access needs HTTPS and a supported browser.');
     if(!stream)stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:true});
+    else if(!stream.getAudioTracks().length){const audioOnly=await navigator.mediaDevices.getUserMedia({audio:true,video:false});audioOnly.getAudioTracks().forEach(t=>stream.addTrack(t));}
     localVideo.srcObject=stream;await localVideo.play();localPlaceholder.hidden=true;
     camBtn.setAttribute('aria-pressed','true');camBtn.innerHTML='◉ <span>Camera on</span>';
     micBtn.setAttribute('aria-pressed','true');micBtn.innerHTML='♫ <span>Mic on</span>';
