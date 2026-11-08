@@ -30,7 +30,7 @@
       <div class="video-column">
         <div class="video-tile stranger-video">
           <div class="video-topline"><span><i></i> STRANGER</span><span class="video-placeholder-tag">WAITING FOR MATCH</span></div>
-          <div class="camera-placeholder"><span class="camera-symbol">✳</span><strong>Your next hello is out there</strong><small>The stranger's video will appear here</small></div>
+          <video id="stranger-camera" class="stranger-camera-feed" autoplay playsinline aria-label="Stranger live video"></video><div class="camera-placeholder" id="stranger-camera-placeholder"><span class="camera-symbol">✳</span><strong>Your next hello is out there</strong><small>The stranger's video will appear here</small></div>
         </div>
         <div class="video-tile you-video">
           <div class="video-topline"><span>YOU</span><span class="video-placeholder-tag">YOUR CAMERA</span></div>
@@ -38,15 +38,15 @@
         </div>
         <div class="media-controls" aria-label="Camera and microphone controls">
           <button type="button" class="media-control" id="camera-toggle" aria-pressed="false" title="Turn your camera on or off">◉ <span>Camera on</span></button>
-          <button type="button" class="media-control" disabled title="Microphone controls will be connected in the next build">♫ <span>Mic</span></button>
+          <button type="button" class="media-control" id="mic-toggle" aria-pressed="false">♫ <span>Mic on</span></button>
           <span class="media-note">Your camera starts only when you choose</span>
         </div>
       </div>
 
       <aside class="live-chat-panel">
         <div class="live-chat-head"><div><span class="live-eyebrow">YOUR CONVERSATION</span><h2>Say hello</h2></div><span class="secure-label">✦ PRIVATE</span></div>
-        <div class="live-chat-empty"><span>✳</span><strong>Your messages will appear here</strong><p>Keep chatting while you meet face to face.</p></div>
-        <div class="live-chat-compose"><input type="text" placeholder="Text chat will be available when connected…" disabled aria-label="Message"><button type="button" disabled aria-label="Send message">↑</button></div>
+        <div class="live-chat-empty" id="live-chat-empty"><span>✳</span><strong>Your messages will appear here</strong><p>Keep chatting while you meet face to face.</p></div><div class="live-chat-messages" id="live-chat-messages" aria-live="polite"></div>
+        <form class="live-chat-compose" id="live-chat-form"><input id="live-chat-input" type="text" maxlength="500" placeholder="Connect with a stranger to chat…" disabled aria-label="Message"><button type="submit" disabled id="live-chat-send" aria-label="Send message">↑</button></form>
         <div class="live-chat-foot">Be kind. Never share private details.</div>
       </aside>
     </section>
@@ -56,6 +56,8 @@
       <div class="setup-controls">
         <label class="age-check"><input type="checkbox" id="age-confirm"> I confirm that I am 18 or older.</label>
         <div class="live-preferences">
+          <label>I am<select id="live-self-gender"><option value="prefer_not_to_say">Prefer not to say</option><option value="woman">Woman</option><option value="man">Man</option><option value="nonbinary">Nonbinary</option></select></label>
+          <label>My country<select id="live-self-country"><option value="India">India</option><option value="United States">United States</option><option value="United Kingdom">United Kingdom</option><option value="Japan">Japan</option><option value="Brazil">Brazil</option><option value="other">Other</option></select></label>
           <label>Meet<select id="live-gender"><option value="any">Anyone</option><option value="woman">Women</option><option value="man">Men</option><option value="nonbinary">Nonbinary people</option></select></label>
           <label>Country<select id="live-country"><option value="anywhere">Anywhere</option><option value="India">India</option><option value="United States">United States</option><option value="United Kingdom">United Kingdom</option><option value="Japan">Japan</option><option value="Brazil">Brazil</option></select></label>
         </div>
@@ -65,6 +67,8 @@
     </section>
     <p class="safety-footnote">The age checkbox is only a self-declaration, not verified age assurance. Video, matching, reporting and safety systems must be connected and tested before public launch.</p>
   </main>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="supabase-config.js"></script>
   <script src="live.js"></script>
 </body>
 </html>
