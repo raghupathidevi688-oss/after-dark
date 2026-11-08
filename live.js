@@ -87,7 +87,7 @@
     });
     if(error)throw error;
     if(data?.status==='matched'){
-      clearInterval(poll);poll=null;session=data.session_id;peerId=data.peer_id;matched=true;
+      clearInterval(poll);poll=null;session=data.session_id;peerId=data.peer_id;matched=true;chatEnabled(true);
       status.textContent='Stranger found. Connecting…';next.disabled=false;stop.disabled=false;await openSignalChannel();
     }
   }
