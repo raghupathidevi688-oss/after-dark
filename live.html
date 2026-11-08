@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#101110">
+  <title>After Dark Live</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="live.css">
+</head>
+<body class="live-page">
+  <header class="topbar live-topbar">
+    <a class="brand" href="index.html" aria-label="After Dark home"><span class="brand-mark" aria-hidden="true">✳</span><span>After Dark</span></a>
+    <nav class="live-nav" aria-label="Main navigation">
+      <a href="index.html">Stranger Text</a>
+      <a href="index.html#groups">Interest Groups</a>
+      <a class="selected" href="live.html" aria-current="page">After Dark Live</a>
+    </nav>
+    <a class="text-button back-link" href="index.html">← Back to chat</a>
+  </header>
+
+  <main class="live-shell">
+    <section class="live-heading">
+      <p class="live-eyebrow">A NEW WAY TO SAY HELLO</p>
+      <h1>Meet face to face.<br><em>Stay a little anonymous.</em></h1>
+      <p>Random one-to-one video conversations, with text chat alongside.</p>
+    </section>
+
+    <section class="live-workspace" aria-label="After Dark Live video chat layout">
+      <div class="video-column">
+        <div class="video-tile stranger-video">
+          <div class="video-topline"><span><i></i> STRANGER</span><span class="video-placeholder-tag">WAITING FOR MATCH</span></div>
+          <div class="camera-placeholder"><span class="camera-symbol">✳</span><strong>Your next hello is out there</strong><small>The stranger's video will appear here</small></div>
+        </div>
+        <div class="video-tile you-video">
+          <div class="video-topline"><span>YOU</span><span class="video-placeholder-tag">YOUR CAMERA</span></div>
+          <div class="camera-placeholder self-placeholder"><span class="camera-symbol">◎</span><strong>Your camera preview</strong><small>Your video stays on your screen</small></div>
+        </div>
+        <div class="media-controls" aria-label="Camera and microphone controls">
+          <button type="button" class="media-control" disabled title="Camera controls will be connected in the next build">◉ <span>Camera</span></button>
+          <button type="button" class="media-control" disabled title="Microphone controls will be connected in the next build">♫ <span>Mic</span></button>
+          <span class="media-note">Camera and mic setup comes next</span>
+        </div>
+      </div>
+
+      <aside class="live-chat-panel">
+        <div class="live-chat-head"><div><span class="live-eyebrow">YOUR CONVERSATION</span><h2>Say hello</h2></div><span class="secure-label">✦ PRIVATE</span></div>
+        <div class="live-chat-empty"><span>✳</span><strong>Your messages will appear here</strong><p>Keep chatting while you meet face to face.</p></div>
+        <div class="live-chat-compose"><input type="text" placeholder="Text chat will be available when connected…" disabled aria-label="Message"><button type="button" disabled aria-label="Send message">↑</button></div>
+        <div class="live-chat-foot">Be kind. Never share private details.</div>
+      </aside>
+    </section>
+
+    <section class="live-setup">
+      <div class="setup-copy"><span class="live-eyebrow">BEFORE YOU START</span><h2>Keep it comfortable.</h2><p>Video chat is for adults. You can stop or move on whenever you want.</p></div>
+      <div class="setup-controls">
+        <label class="age-check"><input type="checkbox" id="age-confirm"> I confirm that I am 18 or older.</label>
+        <div class="live-preferences">
+          <label>Meet<select id="live-gender"><option value="any">Anyone</option><option value="woman">Women</option><option value="man">Men</option><option value="nonbinary">Nonbinary people</option></select></label>
+          <label>Country<select id="live-country"><option value="anywhere">Anywhere</option><option value="India">India</option><option value="United States">United States</option><option value="United Kingdom">United Kingdom</option><option value="Japan">Japan</option><option value="Brazil">Brazil</option></select></label>
+        </div>
+        <div class="live-actions"><button id="live-start" class="live-start" disabled>Start video chat <span>↗</span></button><button id="live-next" class="live-secondary" disabled>Next</button><button id="live-stop" class="live-secondary" disabled>Stop</button></div>
+        <p class="setup-status" id="live-status" role="status">Confirm you are 18+ to continue. Video matching is not connected yet.</p>
+      </div>
+    </section>
+    <p class="safety-footnote">The age checkbox is only a self-declaration, not verified age assurance. Video, matching, reporting and safety systems must be connected and tested before public launch.</p>
+  </main>
+  <script src="live.js"></script>
+</body>
+</html>
