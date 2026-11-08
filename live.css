@@ -21,3 +21,11 @@
 @media(min-width:761px){.video-column{min-width:0}.live-chat-panel{min-height:0}}
 @media(max-width:760px){.video-tile{aspect-ratio:16/9}.you-video{aspect-ratio:16/9;min-height:0}.live-chat-panel{min-height:280px}}
 @media(max-width:430px){.video-tile,.you-video{min-height:0}.camera-symbol{width:48px;height:48px}.video-topline{top:9px;left:9px;right:9px}}
+
+/* Local self-camera preview */
+.you-video{position:relative}
+.self-camera-feed{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;transform:scaleX(-1);background:#080a08}
+.camera-placeholder[hidden]{display:none!important}
+#camera-toggle{cursor:pointer}
+#camera-toggle[aria-pressed="true"]{border-color:#a4c6a8;background:#29382b;color:#d5e8d6}
+#camera-toggle:disabled{opacity:.6;cursor:wait}
