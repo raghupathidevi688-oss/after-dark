@@ -34,12 +34,12 @@
         </div>
         <div class="video-tile you-video">
           <div class="video-topline"><span>YOU</span><span class="video-placeholder-tag">YOUR CAMERA</span></div>
-          <div class="camera-placeholder self-placeholder"><span class="camera-symbol">◎</span><strong>Your camera preview</strong><small>Your video stays on your screen</small></div>
+          <video id="self-camera" class="self-camera-feed" autoplay playsinline muted aria-label="Your live camera preview"></video><div class="camera-placeholder self-placeholder" id="self-camera-placeholder"><span class="camera-symbol">◎</span><strong>Your camera preview</strong><small>Press Camera below to turn it on</small></div>
         </div>
         <div class="media-controls" aria-label="Camera and microphone controls">
-          <button type="button" class="media-control" disabled title="Camera controls will be connected in the next build">◉ <span>Camera</span></button>
+          <button type="button" class="media-control" id="camera-toggle" aria-pressed="false" title="Turn your camera on or off">◉ <span>Camera on</span></button>
           <button type="button" class="media-control" disabled title="Microphone controls will be connected in the next build">♫ <span>Mic</span></button>
-          <span class="media-note">Camera and mic setup comes next</span>
+          <span class="media-note">Your camera starts only when you choose</span>
         </div>
       </div>
 
