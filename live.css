@@ -38,3 +38,76 @@
 .live-chat-compose input:enabled{opacity:1}
 .live-chat-compose button:enabled{cursor:pointer}
 @media(max-width:760px){.live-chat-messages{max-height:220px}}
+
+/* Umingle-inspired full-screen layout, styled for After Dark */
+.live-page{background:#050506;color:#f3f2f7}
+.live-topbar{height:70px;padding:0 22px;background:#08080a;border-bottom:1px solid #21172e}
+.live-topbar .brand-mark{background:#6c35d9;color:#fff}
+.live-nav a.selected{background:#211333;color:#d8c3ff}
+.live-shell{width:min(1600px,calc(100% - 28px));margin:18px auto 24px}
+.live-workspace{grid-template-columns:minmax(290px,27%) minmax(0,1fr);gap:12px;padding:0;background:transparent;border:0;border-radius:0;align-items:stretch}
+.video-column{gap:10px}
+.video-tile{aspect-ratio:16/9;min-height:0;border:1px solid #21172e;border-radius:10px;background:#101014;box-shadow:none}
+.you-video{aspect-ratio:16/9;min-height:0}
+.video-topline{top:10px;left:10px;right:10px}
+.video-topline>span:first-child{background:rgba(8,7,12,.78);border-color:#332344}
+.video-topline i{background:#9b5cff;box-shadow:0 0 9px #8b43f5}
+.video-placeholder-tag{background:rgba(8,7,12,.78);border-color:#332344}
+.camera-symbol{background:linear-gradient(145deg,#3b205c,#171020);border-color:#57337a;color:#d8bdff}
+.self-placeholder .camera-symbol{background:linear-gradient(145deg,#30203f,#171020)}
+.camera-placeholder{background:radial-gradient(ellipse at center,rgba(126,65,194,.15),transparent 55%)}
+.device-settings{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:2px 0}
+.device-button,.device-select-label select{height:38px;border:1px solid #39244e;border-radius:7px;background:#100d15;color:#eee8f7;font:500 12px 'DM Sans',sans-serif}
+.device-button{grid-column:1/-1;cursor:pointer}
+.device-button:hover,.device-select-label select:hover{border-color:#8b50d9;background:#191021}
+.device-select-label{display:flex;flex-direction:column;gap:4px;color:#9c91a9;font-size:10px}
+.device-select-label select{width:100%;padding:0 9px;min-width:0}
+.media-controls{gap:8px;padding:0}
+.media-control{flex:1;justify-content:center;border:1px solid #39244e;background:#100d15;color:#d9c9ee;border-radius:7px;padding:10px}
+.media-control[aria-pressed="true"]{border-color:#8b50d9;background:#241333;color:#fff}
+.live-chat-panel{min-height:0;height:calc(100vh - 112px);max-height:900px;border:1px solid #21172e;border-radius:10px;background:#0d0c10;overflow:hidden}
+.live-chat-head{padding:16px 18px;border-bottom:1px solid #241a30}
+.live-chat-head h2{font-size:18px;color:#f4effa}
+.live-eyebrow{color:#b58be9}
+.secure-label{color:#c49cf4}
+.live-rules{padding:14px 18px 12px;border-bottom:1px solid #241a30;background:#100d14}
+.live-rules strong{display:block;color:#c7a3ff;font-size:14px;margin-bottom:7px}
+.live-rules strong span{display:inline-block;padding:3px 7px;margin-right:5px;border-radius:5px;background:#d52c58;color:white;font-size:11px}
+.live-rules p{margin:4px 0;color:#d4cedb;font-size:12px}
+.live-chat-empty{min-height:120px}
+.live-chat-empty>span{background:#28183a;color:#cba7ff}
+.live-chat-empty strong{font-size:13px}
+.live-chat-empty p{font-size:11px}
+.live-chat-messages{flex:1;max-height:none;min-height:80px}
+.live-chat-message{background:#21182c;border:1px solid #332344}
+.live-chat-message.mine{background:#3a2056;border-color:#58317d}
+.live-setup{display:block;margin:0;padding:12px 15px 8px;border:0;border-top:1px solid #241a30;border-radius:0;background:#0d0c10}
+.setup-controls{gap:9px}
+.age-check{font-size:11px}
+.age-check input{accent-color:#9b59f5}
+.live-preferences{gap:8px}
+.live-preferences label{font-size:9px}
+.live-preferences select{padding:8px;background:#151019;border-color:#39244e;color:#e9e1f1;font-size:10px}
+.live-actions{padding:0 14px 10px;gap:8px}
+.live-start,.live-secondary{min-height:46px;border-radius:8px;font-size:12px}
+.live-start{flex:0 0 138px;justify-content:center;gap:10px;background:#7138d5;color:white}
+.live-start:hover:not(:disabled){background:#854ce8}
+.live-secondary{flex:0 0 76px;background:#1a1421;border:1px solid #39244e;color:#e4d8f2}
+.live-chat-compose{margin:0 14px 10px;padding:0;border:0;gap:8px}
+.live-chat-compose input{height:48px;background:#111015;border:1px solid #39244e;border-radius:8px;font-size:12px;padding:0 14px}
+.live-chat-compose button{width:48px;background:#7138d5;color:white;border-radius:8px}
+.live-chat-foot{padding:0 12px 10px;font-size:9px}
+.safety-footnote{color:#716a78}
+@media(min-width:761px){.video-column{min-width:0}.live-chat-panel{min-height:0}.live-chat-empty{flex:1}}
+@media(max-width:900px){.live-workspace{grid-template-columns:minmax(250px,34%) minmax(0,1fr)}.live-chat-panel{height:calc(100vh - 112px)}.live-preferences{flex-wrap:wrap}.live-preferences label{min-width:calc(50% - 8px)}}
+@media(max-width:760px){.live-shell{width:calc(100% - 20px);margin:12px auto}.live-workspace{grid-template-columns:1fr}.video-column{display:grid;grid-template-columns:1fr 1fr;gap:8px}.video-tile,.you-video{aspect-ratio:4/3}.device-settings,.media-controls{grid-column:1/-1}.device-settings{grid-template-columns:1fr 1fr}.device-button{grid-column:1/-1}.live-chat-panel{height:640px;max-height:none}.live-chat-empty{min-height:90px}.live-topbar{padding:0 10px}.live-nav a{font-size:9px;padding:8px 6px}}
+@media(max-width:430px){.video-column{grid-template-columns:1fr}.video-tile,.you-video{aspect-ratio:16/9}.live-chat-panel{height:680px}.live-actions{padding-left:10px;padding-right:10px}.live-start{flex:1}.live-secondary{flex:0 0 58px}.live-preferences label{min-width:calc(50% - 8px)}}
+
+.live-bottom-controls{display:flex;align-items:stretch;gap:8px;padding:0 14px 10px}
+.live-bottom-controls .live-actions{flex:0 0 auto;padding:0;align-items:stretch}
+.live-bottom-controls .live-start{flex:0 0 118px}
+.live-bottom-controls .live-secondary{flex:0 0 54px;padding:8px}
+.live-bottom-controls .live-chat-compose{flex:1;min-width:0;margin:0;align-items:stretch}
+.live-bottom-controls .live-chat-compose input{min-width:0}
+#live-status{padding:0 16px 9px}
+@media(max-width:760px){.live-bottom-controls{flex-wrap:wrap;padding:0 10px 10px}.live-bottom-controls .live-actions{width:100%}.live-bottom-controls .live-start{flex:1}.live-bottom-controls .live-chat-compose{flex-basis:100%}}

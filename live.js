@@ -20,9 +20,9 @@
   }
   async function getMedia(){
     if(!navigator.mediaDevices?.getUserMedia)throw new Error('Camera access needs HTTPS and a supported browser.');
-    if(!stream)stream=await navigator.mediaDevices.getUserMedia({video:{facingMode:'user'},audio:true});
+    if(!stream)stream=await navigator.mediaDevices.getUserMedia({video:cameraSelect.value?{deviceId:{exact:cameraSelect.value}}:{facingMode:{ideal:cameraFacing}},audio:micSelect.value?{deviceId:{exact:micSelect.value}}:true});
     else if(!stream.getAudioTracks().length){const audioOnly=await navigator.mediaDevices.getUserMedia({audio:true,video:false});audioOnly.getAudioTracks().forEach(t=>stream.addTrack(t));}
-    localVideo.srcObject=stream;await localVideo.play();localPlaceholder.hidden=true;
+    localVideo.srcObject=stream;await localVideo.play();localPlaceholder.hidden=true;await refreshDevices();
     camBtn.setAttribute('aria-pressed','true');camBtn.innerHTML='◉ <span>Camera on</span>';
     micBtn.setAttribute('aria-pressed','true');micBtn.innerHTML='♫ <span>Mic on</span>';
   }
@@ -119,6 +119,50 @@
     chatInput.value='';message(text,true);await channel.send({type:'broadcast',event:'chat',payload:{text:text.slice(0,500)}});
   });
   window.addEventListener('pagehide',()=>{if(pc)pc.close();if(stream)stream.getTracks().forEach(t=>t.stop());if(sb&&uid)sb.rpc('leave_after_dark_video_queue');});
+
+  const cameraSelect=$('camera-device'), micSelect=$('microphone-device'), flipButton=$('flip-camera');
+  let cameraFacing='user';
+  async function refreshDevices(){
+    if(!navigator.mediaDevices?.enumerateDevices)return;
+    const devices=await navigator.mediaDevices.enumerateDevices();
+    const fill=(select,kind,label)=>{
+      const previous=select.value;
+      select.innerHTML='';
+      const first=document.createElement('option');first.value='';first.textContent='Default '+label;select.append(first);
+      devices.filter(d=>d.kind===kind).forEach((d,i)=>{const option=document.createElement('option');option.value=d.deviceId;option.textContent=d.label||label+' '+(i+1);select.append(option);});
+      if([...select.options].some(o=>o.value===previous))select.value=previous;
+    };
+    fill(cameraSelect,'videoinput','camera');fill(micSelect,'audioinput','microphone');
+  }
+  async function replaceMediaTrack(kind,constraints){
+    const request=kind==='video'?{video:constraints,audio:false}:{video:false,audio:constraints};
+    const fresh=await navigator.mediaDevices.getUserMedia(request);
+    const track=fresh.getTracks()[0];
+    const old=stream?.getTracks().find(t=>t.kind===kind);
+    const sender=pc?.getSenders().find(s=>s.track?.kind===kind);
+    if(sender)await sender.replaceTrack(track);
+    if(old){stream.removeTrack(old);old.stop();}
+    stream.addTrack(track);
+    if(kind==='video'){localVideo.srcObject=stream;await localVideo.play();localPlaceholder.hidden=true;camBtn.setAttribute('aria-pressed','true');camBtn.innerHTML='◉ <span>Camera off</span>';}
+    else{micBtn.setAttribute('aria-pressed','true');micBtn.innerHTML='♫ <span>Mic off</span>';}
+    await refreshDevices();
+  }
+  flipButton.addEventListener('click',async()=>{
+    if(!stream?.getVideoTracks().length){status.textContent='Start video chat before flipping your camera.';return;}
+    try{cameraFacing=cameraFacing==='user'?'environment':'user';cameraSelect.value='';await replaceMediaTrack('video',{facingMode:{ideal:cameraFacing}});}
+    catch(e){cameraFacing=cameraFacing==='user'?'environment':'user';status.textContent=e.message||'Could not switch camera.';}
+  });
+  cameraSelect.addEventListener('change',async()=>{
+    if(!stream)return;
+    try{cameraFacing='user';await replaceMediaTrack('video',cameraSelect.value?{deviceId:{exact:cameraSelect.value}}:{facingMode:{ideal:'user'}});}
+    catch(e){status.textContent=e.message||'Could not change camera.';}
+  });
+  micSelect.addEventListener('change',async()=>{
+    if(!stream)return;
+    try{await replaceMediaTrack('audio',micSelect.value?{deviceId:{exact:micSelect.value}}:true);}
+    catch(e){status.textContent=e.message||'Could not change microphone.';}
+  });
+
   chatEnabled(false);
   if(!sb)status.textContent='Supabase could not load. Refresh this page and try again.';
 })();
