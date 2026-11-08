@@ -20,12 +20,6 @@
   </header>
 
   <main class="live-shell">
-    <section class="live-heading">
-      <p class="live-eyebrow">A NEW WAY TO SAY HELLO</p>
-      <h1>Meet face to face.<br><em>Stay a little anonymous.</em></h1>
-      <p>Random one-to-one video conversations, with text chat alongside.</p>
-    </section>
-
     <section class="live-workspace" aria-label="After Dark Live video chat">
       <div class="video-column">
         <div class="video-tile stranger-video">
@@ -70,8 +64,11 @@
             </div>
           </div>
         </div>
-        <div class="live-actions"><button id="live-start" class="live-start" disabled>Start <span>↗</span></button><button id="live-next" class="live-secondary" disabled>Next</button><button id="live-stop" class="live-secondary" disabled>Stop</button></div>
-        <form class="live-chat-compose" id="live-chat-form"><input id="live-chat-input" type="text" maxlength="500" placeholder="Type a message…" disabled aria-label="Message"><button type="submit" disabled id="live-chat-send" aria-label="Send message">➤</button></form>
+        <div class="live-bottom-controls">
+          <div class="live-actions"><button id="live-start" class="live-start" disabled>Start <span>↗</span></button><button id="live-next" class="live-secondary" disabled>Next</button><button id="live-stop" class="live-secondary" disabled>Stop</button></div>
+          <form class="live-chat-compose" id="live-chat-form"><input id="live-chat-input" type="text" maxlength="500" placeholder="Type a message…" disabled aria-label="Message"><button type="submit" disabled id="live-chat-send" aria-label="Send message">➤</button></form>
+        </div>
+        <p class="setup-status" id="live-status" role="status">Confirm you are 18+ to start. Your camera and microphone stay off until then.</p>
         <div class="live-chat-foot">Be kind. You can leave whenever you want.</div>
       </aside>
     </section>
