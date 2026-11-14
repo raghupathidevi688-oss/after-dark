@@ -63,7 +63,7 @@
       if(offerRetry)clearInterval(offerRetry);offerRetry=null;
     }else if(payload.type==='ice'&&payload.candidate){
       if(!hasRemoteDescription)waitingCandidates.push(payload.candidate);else try{await pc.addIceCandidate(payload.candidate);}catch(e){console.warn(e);}
-    }else if(payload.type==='hangup'){status.textContent='The stranger left the chat.';await finish(false);}
+    }else if(payload.type==='hangup'){status.textContent='The stranger left the chat.';await finish(false,false);}
   }
   async function openSignalChannel(){
     channel=sb.channel('video:'+session,{config:{private:true}})
@@ -101,9 +101,9 @@
       if(busy&&!matched)poll=setInterval(()=>checkMatch().catch(e=>{status.textContent=e.message||'Matching stopped.';finish(false);}),1800);
     }catch(e){status.textContent=e.message||'Could not start video chat.';await finish(false);}
   }
-  async function finish(requeue){
+  async function finish(requeue,notifyPeer=true){
     if(poll)clearInterval(poll);poll=null;if(offerRetry)clearInterval(offerRetry);offerRetry=null;
-    if(channel){if(matched&&!requeue)await signal({type:'hangup'});await sb.removeChannel(channel);channel=null;}
+    if(channel){if(matched&&notifyPeer){try{await signal({type:'hangup'});}catch(e){console.warn('Could not notify the other participant that the video chat ended.',e);}}await sb.removeChannel(channel);channel=null;}
     if(pc){pc.ontrack=null;pc.close();pc=null;}
     if(sb&&uid){const {error}=await sb.rpc('leave_after_dark_video_queue');if(error)console.warn(error);}
     busy=false;matched=false;session=null;peerId=null;waitingCandidates=[];hasRemoteDescription=false;

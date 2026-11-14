@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#101110">
+  <meta name="theme-color" content="#08080a">
   <title>After Dark Live</title>
   <link rel="stylesheet" href="styles.css">
   <link rel="stylesheet" href="live.css">
@@ -11,29 +11,24 @@
 <body class="live-page">
   <header class="topbar live-topbar">
     <a class="brand" href="index.html" aria-label="After Dark home"><span class="brand-mark" aria-hidden="true">✳</span><span>After Dark</span></a>
-    <nav class="live-nav" aria-label="Main navigation">
-      <a href="index.html">Stranger Text</a>
-      <a href="index.html#groups">Interest Groups</a>
-      <a class="selected" href="live.html" aria-current="page">After Dark Live</a>
-    </nav>
-    <a class="text-button back-link" href="index.html">← Back to chat</a>
+    <a class="text-button back-link" href="index.html">← Stranger text</a>
   </header>
 
   <main class="live-shell">
     <section class="live-workspace" aria-label="After Dark Live video chat">
       <div class="video-column">
         <div class="video-tile stranger-video">
-          <div class="video-topline"><span><i></i> STRANGER</span><span class="video-placeholder-tag">WAITING FOR MATCH</span></div>
+          <div class="video-topline"><span><i></i> STRANGER</span></div>
           <video id="stranger-camera" class="stranger-camera-feed" autoplay playsinline aria-label="Stranger live video"></video>
-          <div class="camera-placeholder" id="stranger-camera-placeholder"><span class="camera-symbol">✳</span><strong>Your next hello is out there</strong><small>The stranger's video will appear here</small></div>
+          <div class="camera-placeholder" id="stranger-camera-placeholder"><strong>Stranger camera</strong><small>Your next hello is out there.</small></div>
         </div>
         <div class="video-tile you-video">
-          <div class="video-topline"><span>YOU</span><span class="video-placeholder-tag">YOUR CAMERA</span></div>
+          <div class="video-topline"><span>YOU</span></div>
           <video id="self-camera" class="self-camera-feed" autoplay playsinline muted aria-label="Your live camera preview"></video>
-          <div class="camera-placeholder self-placeholder" id="self-camera-placeholder"><span class="camera-symbol">◎</span><strong>Your camera preview</strong><small>Press Start to turn it on</small></div>
+          <div class="camera-placeholder self-placeholder" id="self-camera-placeholder"><strong>Your camera</strong><small>Press Start to turn it on.</small></div>
         </div>
         <div class="device-settings" aria-label="Camera and microphone settings">
-          <button type="button" id="flip-camera" class="device-button">↻ <span>Flip Camera</span></button>
+          <button type="button" id="flip-camera" class="device-button">↻ Flip camera</button>
           <label class="device-select-label"><span>Camera</span><select id="camera-device" aria-label="Choose camera"><option value="">Default camera</option></select></label>
           <label class="device-select-label"><span>Microphone</span><select id="microphone-device" aria-label="Choose microphone"><option value="">Default microphone</option></select></label>
         </div>
@@ -43,36 +38,37 @@
         </div>
       </div>
 
-      <aside class="live-chat-panel">
-        <div class="live-chat-head"><div><span class="live-eyebrow">AFTER DARK LIVE</span><h2>Meet someone new.</h2></div><span class="secure-label">✦ PRIVATE CHAT</span></div>
+      <aside class="live-chat-panel" aria-label="Chat with your stranger">
         <div class="live-rules">
           <strong><span>18+</span> You must be 18 or older</strong>
-          <p>No nudity, hate speech, or harassment</p>
-          <p>Your camera must show you live</p>
-          <p>Respect the stranger. Never share private details.</p>
+          <p>No nudity, hate speech, or harassment.</p>
+          <p>Show yourself live and respect the person you meet.</p>
+          <label class="age-check"><input type="checkbox" id="age-confirm"> I confirm that I am 18 or older.</label>
         </div>
-        <div class="live-chat-empty" id="live-chat-empty"><span>✳</span><strong>Your messages will appear here</strong><p>Start to meet a stranger and chat face to face.</p></div>
+        <div class="live-chat-empty" id="live-chat-empty"><strong>Your chat will appear here</strong><p>Press Start to meet someone new.</p></div>
         <div class="live-chat-messages" id="live-chat-messages" aria-live="polite"></div>
-        <div class="live-setup">
-          <div class="setup-controls">
-            <label class="age-check"><input type="checkbox" id="age-confirm"> I confirm that I am 18 or older.</label>
-            <div class="live-preferences">
-              <label>I am<select id="live-self-gender"><option value="prefer_not_to_say">Prefer not to say</option><option value="woman">Woman</option><option value="man">Man</option><option value="nonbinary">Nonbinary</option></select></label>
-              <label>My country<select id="live-self-country"><option value="India">India</option><option value="United States">United States</option><option value="United Kingdom">United Kingdom</option><option value="Japan">Japan</option><option value="Brazil">Brazil</option><option value="other">Other</option></select></label>
-              <label>Meet<select id="live-gender"><option value="any">Anyone</option><option value="woman">Women</option><option value="man">Men</option><option value="nonbinary">Nonbinary people</option></select></label>
-              <label>Country<select id="live-country"><option value="anywhere">Anywhere</option><option value="India">India</option><option value="United States">United States</option><option value="United Kingdom">United Kingdom</option><option value="Japan">Japan</option><option value="Brazil">Brazil</option></select></label>
-            </div>
-          </div>
-        </div>
         <div class="live-bottom-controls">
-          <div class="live-actions"><button id="live-start" class="live-start" disabled>Start <span>↗</span></button><button id="live-next" class="live-secondary" disabled>Next</button><button id="live-stop" class="live-secondary" disabled>Stop</button></div>
-          <form class="live-chat-compose" id="live-chat-form"><input id="live-chat-input" type="text" maxlength="500" placeholder="Type a message…" disabled aria-label="Message"><button type="submit" disabled id="live-chat-send" aria-label="Send message">➤</button></form>
+          <div class="live-actions">
+            <button id="live-start" class="live-start" disabled>Start</button>
+            <button id="live-next" class="live-secondary" disabled>Next</button>
+            <button id="live-stop" class="live-secondary" disabled>Stop</button>
+          </div>
+          <form class="live-chat-compose" id="live-chat-form">
+            <input id="live-chat-input" type="text" maxlength="500" placeholder="Type a message…" disabled aria-label="Message">
+            <button type="submit" disabled id="live-chat-send" aria-label="Send message">➤</button>
+          </form>
         </div>
-        <p class="setup-status" id="live-status" role="status">Confirm you are 18+ to start. Your camera and microphone stay off until then.</p>
-        <div class="live-chat-foot">Be kind. You can leave whenever you want.</div>
+        <p class="setup-status" id="live-status" role="status">Confirm you are 18+ to start.</p>
       </aside>
     </section>
-    <p class="safety-footnote">The age checkbox is only a self-declaration, not verified age assurance. Video, matching, reporting and safety systems must be connected and tested before public launch.</p>
+
+    <div class="hidden" aria-hidden="true">
+      <select id="live-self-gender"><option value="prefer_not_to_say">Prefer not to say</option><option value="woman">Woman</option><option value="man">Man</option><option value="nonbinary">Nonbinary</option></select>
+      <select id="live-self-country"><option value="India">India</option><option value="United States">United States</option><option value="United Kingdom">United Kingdom</option><option value="Japan">Japan</option><option value="Brazil">Brazil</option><option value="other">Other</option></select>
+      <select id="live-gender"><option value="any">Anyone</option><option value="woman">Women</option><option value="man">Men</option><option value="nonbinary">Nonbinary people</option></select>
+      <select id="live-country"><option value="anywhere">Anywhere</option><option value="India">India</option><option value="United States">United States</option><option value="United Kingdom">United Kingdom</option><option value="Japan">Japan</option><option value="Brazil">Brazil</option></select>
+    </div>
+    <p class="safety-footnote">Video chat is for adults 18+. Never share private information.</p>
   </main>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="supabase-config.js"></script>
