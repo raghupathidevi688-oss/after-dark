@@ -102,3 +102,37 @@ footer{padding:16px 0}
 .group-member-name{font-size:9px;color:#c6cbc3;overflow-wrap:anywhere}
 .member-report-button{padding:2px 5px;border:1px solid #41483f;border-radius:4px;font-size:8px}
 @media(max-width:430px){.group-members-panel{max-height:90px}.group-member-row{min-width:46%}}
+
+
+/* Mission 1: After Dark blue identity + landing-page age gate */
+:root{--ink:#eef4ff;--muted:#9aa9c2;--green:#4f8cff;--mint:#14264a;--cream:#080d1b;--line:#1e2c46;--orange:#79b8ff;color-scheme:dark}
+body{background:radial-gradient(ellipse at 16% 22%,rgba(29,78,216,.13),transparent 34%),radial-gradient(ellipse at 86% 72%,rgba(37,99,235,.10),transparent 32%),#080d1b;color:#eef4ff}
+.topbar{background:rgba(8,13,27,.88);border-color:#1b2942;backdrop-filter:blur(14px)}
+.brand{color:#f4f7ff}.brand-mark{background:#1d4ed8;color:#fff;box-shadow:0 0 24px rgba(37,99,235,.28)}
+.brand-mark svg{fill:#fff}.brand-mark .brand-star{fill:#bfdbfe}
+.top-note,.intro-copy,.trust-row,.note-card p{color:#9eacc4}.eyebrow,.card-kicker{color:#8fb5ff}.sparkle,.note-icon{color:#60a5fa}
+.intro h1 em{color:#72a9ff}.trust-row b,.text-button,footer button{color:#78aaff}
+.note-card{background:rgba(17,29,52,.82);border-color:#24395e;box-shadow:0 12px 34px rgba(0,0,0,.16)}
+.chat-card{background:rgba(13,22,40,.94);border-color:#263958;box-shadow:0 24px 70px rgba(0,0,0,.38),0 0 42px rgba(37,99,235,.08);backdrop-filter:blur(16px)}
+.card-head,.card-foot,.stranger-row,.message-form{border-color:#243653}.card-head h2,.empty-state p,.waiting-state h3{color:#f1f6ff}
+.status-pill{background:#142644;color:#b7d2ff}.status-dot,.live-dot{background:#60a5fa}
+.chat-stage{background:radial-gradient(ellipse at 52% 42%,#14264a 0,#0d1628 66%)}
+.orbit{border-color:#29446f}.orbit-two{border-color:#1d3459}
+.hello-bubble{background:#17366e;color:#bfdbfe;box-shadow:0 10px 32px rgba(37,99,235,.2)}
+.dot-a,.dot-b,.dot-c{background:#60a5fa}.empty-state small,.waiting-state p{color:#9aacca}
+.start-button{background:linear-gradient(135deg,#2563eb,#3b82f6);color:white;box-shadow:0 8px 22px rgba(37,99,235,.2)}
+.start-button:hover{background:linear-gradient(135deg,#1d4ed8,#60a5fa)}
+.preferences label{color:#aabbd6}.preferences select,.message-form input{background:#101d33;border-color:#2a4165;color:#edf4ff}
+.preferences select:focus,.message-form input:focus{border-color:#60a5fa}.mode-switch{background:#101d33}.mode-tab{color:#9eb0ce}.mode-tab.active{background:#1d3c70;color:#dbeafe}
+.quick-anonymous,.history-link,.group-members-heading button,.member-report-button{color:#8db7ff}.quick-anonymous input{accent-color:#3b82f6}
+.message{background:#172844}.message.mine{background:#1d3e75}.message p{color:#edf4ff}.message-author{color:#91baff}.message-form button{background:#2563eb;color:white}
+.chat-actions button,.chat-actions button span{color:#8db7ff}.chat-actions #leave-button{border-color:#35517a;color:#d7e6ff}.chat-actions #leave-button:hover{background:#15294a}
+.group-members-panel{background:#101d33;border-color:#294064}.group-member-name{color:#d2e2ff}.member-report-button{border-color:#35517a}
+footer{border-color:#1e2c46;color:#8192ad}
+.age-badge{display:inline-flex;align-items:center;justify-content:center;padding:7px 10px;border:1px solid #315b9c;border-radius:999px;background:rgba(37,99,235,.14);color:#a9ccff;font:700 9px 'DM Sans',sans-serif;letter-spacing:.12em;white-space:nowrap}
+.age-gate{position:fixed;z-index:1000;inset:0;display:grid;place-items:center;padding:22px;background:rgba(3,7,17,.88);backdrop-filter:blur(18px)}
+.age-gate[hidden]{display:none!important}.age-gate-card{width:min(460px,100%);padding:34px;border:1px solid #294675;border-radius:22px;background:linear-gradient(155deg,rgba(18,34,61,.98),rgba(8,15,29,.99));box-shadow:0 28px 100px rgba(0,0,0,.6),0 0 55px rgba(37,99,235,.15);text-align:center}
+.age-gate-mark{display:grid;place-items:center;width:66px;height:66px;margin:0 auto 18px;border:1px solid #477bd0;border-radius:19px;background:linear-gradient(145deg,#2563eb,#173d85);box-shadow:0 12px 34px rgba(37,99,235,.3);color:#fff;font:800 22px Manrope,sans-serif}
+.age-gate-eyebrow{margin:0 0 12px;color:#82b4ff;font-size:9px;font-weight:700;letter-spacing:.2em}.age-gate-card h2{margin:0 0 12px;color:#f4f7ff;font:700 clamp(23px,5vw,30px)/1.2 Manrope,sans-serif;letter-spacing:-1px}
+.age-gate-copy{max-width:340px;margin:0 auto 22px;color:#a9bad5;font-size:13px;line-height:1.7}.age-gate-actions{display:grid;gap:9px}.age-enter-button,.age-leave-button{min-height:47px;border-radius:10px;font:700 12px 'DM Sans',sans-serif;cursor:pointer}.age-enter-button{border:0;background:linear-gradient(135deg,#2563eb,#4f8cff);color:white;box-shadow:0 8px 24px rgba(37,99,235,.25)}.age-enter-button:hover{filter:brightness(1.12)}.age-leave-button{border:1px solid #344765;background:transparent;color:#aab9d0}.age-gate-card>small{display:block;margin-top:17px;color:#7185a5;font-size:9px;line-height:1.5}.age-gate-message{min-height:16px;margin:10px 0 0;color:#fca5a5;font-size:11px}
+@media(max-width:700px){.topbar{gap:8px}.age-badge{padding:6px 8px;font-size:8px}.age-gate-card{padding:28px 22px}.topbar .text-button{margin-right:0!important}}
