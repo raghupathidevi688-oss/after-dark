@@ -14,7 +14,7 @@
   let uid=null, stream=null, pc=null, channel=null, session=null, peerId=null;
   let poll=null, offerRetry=null, waitingCandidates=[], hasRemoteDescription=false, matched=false, busy=false;
 
-remove live age listener  async function signIn(){
+async function signIn(){
     if(!sb) throw new Error('Supabase did not load. Refresh and try again.');
     let {data:{session}}=await sb.auth.getSession();
     if(!session){const r=await sb.auth.signInAnonymously();if(r.error)throw r.error;session=r.data.session;}
