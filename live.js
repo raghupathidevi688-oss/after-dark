@@ -12,7 +12,7 @@
   const chatForm=$('live-chat-form'), chatInput=$('live-chat-input'), chatSend=$('live-chat-send');
   const chatList=$('live-chat-messages'), chatEmpty=$('live-chat-empty');
   let uid=null, stream=null, pc=null, channel=null, session=null, peerId=null;
-  let poll=null, offerRetry=null, disconnectTimer=null, waitingCandidates=[], hasRemoteDescription=false, matched=false, busy=false, matchCheckInFlight=false;
+  let poll=null, offerRetry=null, disconnectTimer=null, waitingCandidates=[], hasRemoteDescription=false, matched=false, busy=false, matchCheckInFlight=false, searchGeneration=0;
 
 async function signIn(){
     if(!sb) throw new Error('Supabase did not load. Refresh and try again.');
@@ -99,8 +99,8 @@ async function signIn(){
       offerRetry=setInterval(()=>{if(pc?.signalingState==='have-local-offer')signal({type:'offer',description:pc.localDescription});},2500);
     }
   }
-  async function checkMatch(){
-    if(!busy || matched || matchCheckInFlight)return;
+  async function checkMatch(generation=searchGeneration){
+    if(!busy || matched || matchCheckInFlight || generation!==searchGeneration)return;
     matchCheckInFlight=true;
     try {
     const {data,error}=await sb.rpc('join_after_dark_video_queue',{
@@ -108,7 +108,7 @@ async function signIn(){
       p_preferred_gender:$('live-gender').value,p_preferred_country:$('live-country').value
     });
     if(error)throw error;
-    if(!busy){
+    if(!busy || generation!==searchGeneration){
       if(data?.status==='matched') await sb.rpc('leave_after_dark_video_queue');
       return;
     }
@@ -122,15 +122,17 @@ async function signIn(){
   }
   async function startSearch(){
     if(busy)return;
+    const generation=++searchGeneration;
     busy=true;matched=false;start.disabled=true;next.disabled=true;stop.disabled=false;chatEnabled(false);chatList.innerHTML='';
     remoteVideo.srcObject=null;remotePlaceholder.hidden=false;
     try{
       await signIn();status.textContent='Allow camera and microphone access…';await getMedia();
-      status.textContent='Looking for a stranger…';await checkMatch();
-      if(busy&&!matched)poll=setInterval(()=>checkMatch().catch(e=>{status.textContent=e.message||'Matching stopped.';finish(false);}),1800);
+      status.textContent='Looking for a stranger…';await checkMatch(generation);
+      if(busy&&!matched&&generation===searchGeneration)poll=setInterval(()=>checkMatch(generation).catch(e=>{status.textContent=e.message||'Matching stopped.';finish(false);}),1800);
     }catch(e){status.textContent=e.message||'Could not start video chat.';await finish(false);}
   }
   async function finish(requeue,notifyPeer=true){
+    searchGeneration+=1;
     if(poll)clearInterval(poll);poll=null;if(offerRetry)clearInterval(offerRetry);offerRetry=null;if(disconnectTimer)clearTimeout(disconnectTimer);disconnectTimer=null;
     if(channel){if(matched&&notifyPeer){try{await signal({type:'hangup'});}catch(e){console.warn('Could not notify the other participant that the video chat ended.',e);}}await sb.removeChannel(channel);channel=null;}
     if(pc){pc.ontrack=null;pc.close();pc=null;}
