@@ -11,7 +11,7 @@
 <body class="live-page">
   <header class="topbar live-topbar">
     <a class="brand" href="index.html" aria-label="After Dark home"><span class="brand-mark" aria-hidden="true">✳</span><span>After Dark</span></a>
-    <a class="text-button back-link" href="index.html">← Stranger text</a>
+    <a class="text-button back-link" href="index.html">← Choose chat type</a>
   </header>
 
   <main class="live-shell">
@@ -40,16 +40,15 @@
 
       <aside class="live-chat-panel" aria-label="Chat with your stranger">
         <div class="live-rules">
-          <strong><span>18+</span> You must be 18 or older</strong>
-          <p>No nudity, hate speech, or harassment.</p>
-          <p>Show yourself live and respect the person you meet.</p>
-          <label class="age-check"><input type="checkbox" id="age-confirm"> I confirm that I am 18 or older.</label>
+          <strong>Keep it respectful</strong>
+          <p>No harassment, hate speech, or sharing private information.</p>
+          <p>You can leave or report an uncomfortable conversation at any time.</p>
         </div>
         <div class="live-chat-empty" id="live-chat-empty"><strong>Your chat will appear here</strong><p>Press Start to meet someone new.</p></div>
         <div class="live-chat-messages" id="live-chat-messages" aria-live="polite"></div>
         <div class="live-bottom-controls">
           <div class="live-actions">
-            <button id="live-start" class="live-start" disabled>Start</button>
+            <button id="live-start" class="live-start">Start</button>
             <button id="live-next" class="live-secondary" disabled>Next</button>
             <button id="live-stop" class="live-secondary" disabled>Stop</button>
           </div>
@@ -58,7 +57,7 @@
             <button type="submit" disabled id="live-chat-send" aria-label="Send message">➤</button>
           </form>
         </div>
-        <p class="setup-status" id="live-status" role="status">Confirm you are 18+ to start.</p>
+        <p class="setup-status" id="live-status" role="status">Ready when you are. Your camera and microphone stay off until you press Start.</p>
       </aside>
     </section>
 

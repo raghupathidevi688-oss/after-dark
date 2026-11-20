@@ -70,3 +70,15 @@
  .live-bottom-controls .live-start{flex:1}
  .live-bottom-controls .live-chat-compose{flex-basis:100%}
 }
+
+/* After Dark blue video-chat theme */
+.live-page{background:radial-gradient(ellipse at 15% 8%,rgba(37,99,235,.14),transparent 34%),#070c18;color:#eef4ff}
+.live-topbar{background:rgba(8,13,27,.94);border-color:#1e3152}.live-topbar .brand-mark{background:#2563eb;color:#fff}
+.video-tile{border-color:#29436d;background:#0d1729;box-shadow:0 10px 28px rgba(0,0,0,.24)}
+.stranger-camera-feed,.self-camera-feed{background:#080f1d}.video-topline>span:first-child{border-color:#34558a;background:rgba(7,14,27,.82);color:#dbeafe}.video-topline i{background:#60a5fa}
+.camera-placeholder{background:radial-gradient(ellipse at center,rgba(37,99,235,.18),transparent 60%)}.camera-placeholder strong{color:#eaf2ff}.camera-placeholder small{color:#9db2d4}
+.device-button,.device-select-label select,.media-control{border-color:#2d4770;background:#101d33;color:#dbeafe}.media-control[aria-pressed=true]{border-color:#60a5fa;background:#17366b;color:#fff}
+.live-chat-panel{border-color:#263d62;background:#0d1729}.live-rules{border-color:#243a5e;background:#101d33}.live-rules strong{color:#a9ccff}.live-rules p{color:#b7c8e2}
+.live-chat-message{border-color:#29446e;background:#142746;color:#e6f0ff}.live-chat-message.mine{background:#1c3d76;border-color:#315da4}
+.live-bottom-controls{border-color:#263d62}.live-start,.live-secondary{border-color:#315080}.live-bottom-controls .live-start{background:#2563eb;border-color:#2563eb}.live-bottom-controls .live-start:hover:not(:disabled){background:#3b82f6}.live-secondary{background:#14233d;color:#e2edff}
+.live-chat-compose input{border-color:#2d4770;background:#0d192d;color:#eef4ff}.live-chat-compose button{background:#2563eb}.setup-status{color:#9eb6da}.safety-footnote{color:#8298bb}
