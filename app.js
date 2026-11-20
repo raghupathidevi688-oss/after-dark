@@ -24,6 +24,7 @@ let currentChannel = null;
 let currentUserId = null;
 let currentUsername = null;
 let matchLoop = null;
+let roomReconnectTimer = null;
 let searchToken = 0;
 let matchRequestInFlight = false;
 let chatMode = 'one';
@@ -115,6 +116,8 @@ async function showLastChatHistory() {
 async function detachRoom() {
   if (matchLoop) clearInterval(matchLoop);
   matchLoop = null;
+  if (roomReconnectTimer) clearTimeout(roomReconnectTimer);
+  roomReconnectTimer = null;
   if (currentChannel) await supabaseClient.removeChannel(currentChannel);
   currentChannel = null;
   const roomId = currentRoomId;
@@ -183,27 +186,42 @@ async function openRoom(roomId, roomType = 'direct', interest = null) {
   chatCard.classList.add('is-chatting');
   statusText.textContent = roomType === 'interest' ? 'GROUP CHAT' : 'CONNECTED';
   cardTitle.textContent = roomType === 'interest' ? groupLabel(interest) + ' is your room' : 'A new conversation';
-  currentChannel = supabaseClient.channel(roomId, { config: { private: true } })
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages', filter: `room_id=eq.${roomId}` }, (payload) => {
-      if (currentRoomId === roomId) showMessage(payload.new);
-    })
-    .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_members', filter: `room_id=eq.${roomId}` }, () => {
-      if (currentRoomId === roomId && currentRoomType === 'interest') loadGroupMembers(roomId);
-    })
-    .subscribe(async (status, error) => {
-      if (currentRoomId !== roomId) return;
+  let reconnectAttempts = 0;
+  const subscribeRoom = () => {
+    if (currentRoomId !== roomId) return;
+    const channel = supabaseClient.channel(roomId, { config: { private: true } })
+      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'chat_messages', filter: `room_id=eq.${roomId}` }, (payload) => {
+        if (currentRoomId === roomId) showMessage(payload.new);
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'chat_members', filter: `room_id=eq.${roomId}` }, () => {
+        if (currentRoomId === roomId && currentRoomType === 'interest') loadGroupMembers(roomId);
+      });
+    currentChannel = channel;
+    channel.subscribe(async (status, error) => {
+      if (currentRoomId !== roomId || currentChannel !== channel) return;
       if (status === 'SUBSCRIBED') {
-        // Catch up after the subscription is active so messages sent while joining aren't missed.
+        reconnectAttempts = 0;
         const { data, error: historyError } = await supabaseClient.from('chat_messages')
           .select('id,sender_id,sender_name,body,created_at').eq('room_id', roomId).order('created_at');
-        if (currentRoomId !== roomId) return;
+        if (currentRoomId !== roomId || currentChannel !== channel) return;
         if (historyError) showToast('Could not sync recent messages.');
-        else data.forEach(showMessage);
-      } else if (status === 'CHANNEL_ERROR' || status === 'TIMED_OUT') {
+        else (data || []).forEach(showMessage);
+      } else if (['CHANNEL_ERROR', 'TIMED_OUT', 'CLOSED'].includes(status)) {
         console.error('After Dark Realtime subscription failed:', status, error);
-        showToast('Live updates are unavailable. Check the Supabase Realtime setup.');
+        if (reconnectAttempts >= 3) {
+          showToast('Connection interrupted. Leave and reconnect to continue.');
+          return;
+        }
+        reconnectAttempts += 1;
+        roomReconnectTimer = setTimeout(async () => {
+          if (currentRoomId !== roomId || currentChannel !== channel) return;
+          await supabaseClient.removeChannel(channel);
+          subscribeRoom();
+        }, Math.min(1000 * (2 ** (reconnectAttempts - 1)), 5000));
       }
     });
+  };
+  subscribeRoom();
   if (roomType === 'interest') await loadGroupMembers(roomId);
 }
 async function loadGroupMembers(roomId) {
@@ -310,7 +328,12 @@ async function lookForMatch(preferences, token) {
     p_preferred_country: preferences.preferredCountry
   });
   if (error) throw error;
-  if (token !== searchToken) return;
+  if (token !== searchToken) {
+    // A match may finish just as the user cancels or skips. Release it so it
+    // cannot be returned as a stale match on the next search.
+    if (roomId) await supabaseClient.rpc('leave_after_dark_chat', { target_room_id: roomId });
+    return;
+  }
   if (roomId) {
     clearInterval(matchLoop);
     matchLoop = null;
