@@ -194,3 +194,9 @@ footer{max-width:1240px;margin:0 auto;padding:22px 28px;border-color:#1d2940;col
 /* Minimal text-chat empty state: remove the decorative poster */
 .simple-empty-state{background:transparent!important}
 .simple-empty-state p{margin:0!important;font:500 14px 'DM Sans',sans-serif!important;color:#9aacca!important;letter-spacing:.01em}
+
+
+/* Text chat: keep the options visible without an empty welcome panel */
+body:has(.chat-card) .chat-stage{height:0!important;min-height:0!important;overflow:hidden!important;border:0!important}
+body:has(.chat-card) .chat-card:has(.waiting-state:not(.hidden)) .chat-stage{height:185px!important;min-height:185px!important}
+body:has(.chat-card) .chat-card.is-chatting .chat-stage{height:365px!important;min-height:365px!important}
