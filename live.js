@@ -12,7 +12,7 @@
   const chatForm=$('live-chat-form'), chatInput=$('live-chat-input'), chatSend=$('live-chat-send');
   const chatList=$('live-chat-messages'), chatEmpty=$('live-chat-empty');
   let uid=null, stream=null, pc=null, channel=null, session=null, peerId=null;
-  let poll=null, offerRetry=null, waitingCandidates=[], hasRemoteDescription=false, matched=false, busy=false;
+  let poll=null, offerRetry=null, disconnectTimer=null, waitingCandidates=[], hasRemoteDescription=false, matched=false, busy=false, matchCheckInFlight=false;
 
 async function signIn(){
     if(!sb) throw new Error('Supabase did not load. Refresh and try again.');
@@ -51,7 +51,25 @@ async function signIn(){
     stream.getTracks().forEach(t=>pc.addTrack(t,stream));
     pc.ontrack=e=>{remoteVideo.srcObject=e.streams[0];remotePlaceholder.hidden=true;remoteVideo.play().catch(()=>{});};
     pc.onicecandidate=e=>{if(e.candidate)signal({type:'ice',candidate:e.candidate});};
-    pc.onconnectionstatechange=()=>{if(pc?.connectionState==='connected')status.textContent='Connected! Say hello.';else if(['failed','disconnected'].includes(pc?.connectionState))status.textContent='Connection interrupted. Try Next or Stop.';};
+    pc.onconnectionstatechange=()=>{
+      if(pc?.connectionState==='connected'){
+        if(disconnectTimer)clearTimeout(disconnectTimer);
+        disconnectTimer=null;
+        status.textContent='Connected! Say hello.';
+      }else if(pc?.connectionState==='failed'){
+        status.textContent='Connection failed. Start again to meet someone new.';
+        finish(false,false);
+      }else if(pc?.connectionState==='disconnected'){
+        status.textContent='Connection interrupted. Trying to recover…';
+        if(disconnectTimer)clearTimeout(disconnectTimer);
+        disconnectTimer=setTimeout(()=>{
+          if(pc?.connectionState==='disconnected'){
+            status.textContent='Connection lost. Start again to reconnect.';
+            finish(false,false);
+          }
+        },7000);
+      }
+    };
   }
   async function receive(payload){
     if(!pc||!payload)return;
@@ -82,15 +100,24 @@ async function signIn(){
     }
   }
   async function checkMatch(){
-    if(!busy)return;
+    if(!busy || matched || matchCheckInFlight)return;
+    matchCheckInFlight=true;
+    try {
     const {data,error}=await sb.rpc('join_after_dark_video_queue',{
       p_gender:$('live-self-gender').value,p_country:$('live-self-country').value,
       p_preferred_gender:$('live-gender').value,p_preferred_country:$('live-country').value
     });
     if(error)throw error;
+    if(!busy){
+      if(data?.status==='matched') await sb.rpc('leave_after_dark_video_queue');
+      return;
+    }
     if(data?.status==='matched'){
       clearInterval(poll);poll=null;session=data.session_id;peerId=data.peer_id;matched=true;chatEnabled(true);
       status.textContent='Stranger found. Connecting…';next.disabled=false;stop.disabled=false;await openSignalChannel();
+    }
+    } finally {
+      matchCheckInFlight=false;
     }
   }
   async function startSearch(){
@@ -104,7 +131,7 @@ async function signIn(){
     }catch(e){status.textContent=e.message||'Could not start video chat.';await finish(false);}
   }
   async function finish(requeue,notifyPeer=true){
-    if(poll)clearInterval(poll);poll=null;if(offerRetry)clearInterval(offerRetry);offerRetry=null;
+    if(poll)clearInterval(poll);poll=null;if(offerRetry)clearInterval(offerRetry);offerRetry=null;if(disconnectTimer)clearTimeout(disconnectTimer);disconnectTimer=null;
     if(channel){if(matched&&notifyPeer){try{await signal({type:'hangup'});}catch(e){console.warn('Could not notify the other participant that the video chat ended.',e);}}await sb.removeChannel(channel);channel=null;}
     if(pc){pc.ontrack=null;pc.close();pc=null;}
     if(sb&&uid){const {error}=await sb.rpc('leave_after_dark_video_queue');if(error)console.warn(error);}
@@ -120,7 +147,7 @@ async function signIn(){
     e.preventDefault();const text=chatInput.value.trim();if(!text||!channel)return;
     chatInput.value='';message(text,true);await channel.send({type:'broadcast',event:'chat',payload:{text:text.slice(0,500)}});
   });
-  window.addEventListener('pagehide',()=>{if(pc)pc.close();if(stream)stream.getTracks().forEach(t=>t.stop());if(sb&&uid)sb.rpc('leave_after_dark_video_queue');});
+  window.addEventListener('pagehide',()=>{if(disconnectTimer)clearTimeout(disconnectTimer);if(pc)pc.close();if(stream)stream.getTracks().forEach(t=>t.stop());if(sb&&uid)sb.rpc('leave_after_dark_video_queue');});
 
   const cameraSelect=$('camera-device'), micSelect=$('microphone-device'), flipButton=$('flip-camera');
   let cameraFacing='user';
