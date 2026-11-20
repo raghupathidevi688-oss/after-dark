@@ -189,3 +189,8 @@ footer{max-width:1240px;margin:0 auto;padding:22px 28px;border-color:#1d2940;col
 .feature-grid{gap:12px}.feature-card{border-color:#1e2b43;background:rgba(11,16,27,.9);transition:transform .18s,border-color .18s,background .18s}.feature-card:hover{transform:translateY(-2px);border-color:#34598e;background:#101b2e}
 @media(max-width:760px){.chat-card{padding:24px 16px 19px}.chat-mode-links{gap:9px}.chat-mode-link{min-width:0;flex:1;min-height:51px;font-size:16px}.chat-stage{min-height:165px}.preferences{gap:10px}.preferences select{min-height:43px;padding:0 10px;font-size:11px}.start-button{min-height:49px}}
 @media(max-width:390px){.preferences{grid-template-columns:1fr}.landing-intro h1{font-size:29px}}
+
+
+/* Minimal text-chat empty state: remove the decorative poster */
+.simple-empty-state{background:transparent!important}
+.simple-empty-state p{margin:0!important;font:500 14px 'DM Sans',sans-serif!important;color:#9aacca!important;letter-spacing:.01em}
