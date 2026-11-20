@@ -2,7 +2,10 @@
   const $ = id => document.getElementById(id);
   const config = window.AFTER_DARK_SUPABASE_CONFIG;
   const sb = config && window.supabase?.createClient ? window.supabase.createClient(config.url, config.publishableKey) : null;
-  const age=$('age-confirm'), start=$('live-start'), next=$('live-next'), stop=$('live-stop');
+  const AGE_KEY='afterDarkAgeConfirmedV1';
+  try { if (localStorage.getItem(AGE_KEY) !== 'yes') { window.location.replace('index.html?age=required'); return; } }
+  catch (_) { window.location.replace('index.html?age=required'); return; }
+  const start=$('live-start'), next=$('live-next'), stop=$('live-stop');
   const status=$('live-status'), camBtn=$('camera-toggle'), micBtn=$('mic-toggle');
   const localVideo=$('self-camera'), remoteVideo=$('stranger-camera');
   const localPlaceholder=$('self-camera-placeholder'), remotePlaceholder=$('stranger-camera-placeholder');
@@ -11,8 +14,7 @@
   let uid=null, stream=null, pc=null, channel=null, session=null, peerId=null;
   let poll=null, offerRetry=null, waitingCandidates=[], hasRemoteDescription=false, matched=false, busy=false;
 
-  age.addEventListener('change',()=>{start.disabled=!age.checked;status.textContent=age.checked?'Ready when you are. Camera and microphone stay off until you start.':'Confirm you are 18+ to continue.';});
-  async function signIn(){
+remove live age listener  async function signIn(){
     if(!sb) throw new Error('Supabase did not load. Refresh and try again.');
     let {data:{session}}=await sb.auth.getSession();
     if(!session){const r=await sb.auth.signInAnonymously();if(r.error)throw r.error;session=r.data.session;}
@@ -92,7 +94,7 @@
     }
   }
   async function startSearch(){
-    if(!age.checked||busy)return;
+    if(busy)return;
     busy=true;matched=false;start.disabled=true;next.disabled=true;stop.disabled=false;chatEnabled(false);chatList.innerHTML='';
     remoteVideo.srcObject=null;remotePlaceholder.hidden=false;
     try{
@@ -108,8 +110,8 @@
     if(sb&&uid){const {error}=await sb.rpc('leave_after_dark_video_queue');if(error)console.warn(error);}
     busy=false;matched=false;session=null;peerId=null;waitingCandidates=[];hasRemoteDescription=false;
     remoteVideo.srcObject=null;remotePlaceholder.hidden=false;stopMedia();chatEnabled(false);
-    next.disabled=true;stop.disabled=true;start.disabled=!age.checked;
-    if(requeue&&age.checked){await startSearch();}else if(status.textContent!=='The stranger left the chat.')status.textContent='Video chat ended. Start again whenever you like.';
+    next.disabled=true;stop.disabled=true;start.disabled=false;
+    if(requeue){await startSearch();}else if(status.textContent!=='The stranger left the chat.')status.textContent='Video chat ended. Start again whenever you like.';
   }
   start.addEventListener('click',startSearch);
   next.addEventListener('click',()=>{status.textContent='Finding your next stranger…';finish(true);});
