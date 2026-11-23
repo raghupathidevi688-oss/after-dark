@@ -2,17 +2,19 @@
   const $ = id => document.getElementById(id);
   const config = window.AFTER_DARK_SUPABASE_CONFIG;
   const sb = config && window.supabase?.createClient ? window.supabase.createClient(config.url, config.publishableKey) : null;
-  const age=$('age-confirm'), start=$('live-start'), next=$('live-next'), stop=$('live-stop');
+  const AGE_KEY='afterDarkAgeConfirmedV1';
+  try { if (localStorage.getItem(AGE_KEY) !== 'yes') { window.location.replace('index.html?age=required'); return; } }
+  catch (_) { window.location.replace('index.html?age=required'); return; }
+  const start=$('live-start'), next=$('live-next'), stop=$('live-stop');
   const status=$('live-status'), camBtn=$('camera-toggle'), micBtn=$('mic-toggle');
   const localVideo=$('self-camera'), remoteVideo=$('stranger-camera');
   const localPlaceholder=$('self-camera-placeholder'), remotePlaceholder=$('stranger-camera-placeholder');
   const chatForm=$('live-chat-form'), chatInput=$('live-chat-input'), chatSend=$('live-chat-send');
   const chatList=$('live-chat-messages'), chatEmpty=$('live-chat-empty');
   let uid=null, stream=null, pc=null, channel=null, session=null, peerId=null;
-  let poll=null, offerRetry=null, waitingCandidates=[], hasRemoteDescription=false, matched=false, busy=false;
+  let poll=null, offerRetry=null, disconnectTimer=null, waitingCandidates=[], hasRemoteDescription=false, matched=false, busy=false, matchCheckInFlight=false, searchGeneration=0;
 
-  age.addEventListener('change',()=>{start.disabled=!age.checked;status.textContent=age.checked?'Ready when you are. Camera and microphone stay off until you start.':'Confirm you are 18+ to continue.';});
-  async function signIn(){
+async function signIn(){
     if(!sb) throw new Error('Supabase did not load. Refresh and try again.');
     let {data:{session}}=await sb.auth.getSession();
     if(!session){const r=await sb.auth.signInAnonymously();if(r.error)throw r.error;session=r.data.session;}
@@ -42,14 +44,51 @@
   });
   function chatEnabled(on){chatInput.disabled=!on;chatSend.disabled=!on;chatEmpty.hidden=on;}
   function message(text,mine){const el=document.createElement('div');el.className='live-chat-message'+(mine?' mine':'');el.textContent=text;chatList.append(el);chatList.scrollTop=chatList.scrollHeight;}
-  async function signal(payload){if(channel)await channel.send({type:'broadcast',event:'signal',payload});}
+  async function signal(payload){
+    if(!channel)throw new Error('Video signalling channel is not ready.');
+    const result=await channel.send({type:'broadcast',event:'signal',payload});
+    if(result!=='ok')throw new Error('Could not send a video connection signal. Check your internet connection and try again.');
+  }
+  function waitForIceGathering(target,timeoutMs=10000){
+    if(target.iceGatheringState==='complete')return Promise.resolve();
+    return new Promise(resolve=>{
+      let timer=null,done=false;
+      const finish=()=>{
+        if(done)return;done=true;
+        if(timer)clearTimeout(timer);
+        target.removeEventListener('icegatheringstatechange',check);
+        resolve();
+      };
+      const check=()=>{if(target.iceGatheringState==='complete')finish();};
+      target.addEventListener('icegatheringstatechange',check);
+      timer=setTimeout(finish,timeoutMs);
+      check();
+    });
+  }
   async function flushIce(){for(const c of waitingCandidates.splice(0)){try{await pc.addIceCandidate(c);}catch(e){console.warn(e);}}}
   function createPeer(){
     pc=new RTCPeerConnection({iceServers:[{urls:'stun:stun.l.google.com:19302'},{urls:'stun:stun1.l.google.com:19302'}]});
     stream.getTracks().forEach(t=>pc.addTrack(t,stream));
     pc.ontrack=e=>{remoteVideo.srcObject=e.streams[0];remotePlaceholder.hidden=true;remoteVideo.play().catch(()=>{});};
-    pc.onicecandidate=e=>{if(e.candidate)signal({type:'ice',candidate:e.candidate});};
-    pc.onconnectionstatechange=()=>{if(pc?.connectionState==='connected')status.textContent='Connected! Say hello.';else if(['failed','disconnected'].includes(pc?.connectionState))status.textContent='Connection interrupted. Try Next or Stop.';};
+    // Send SDP only after ICE gathering completes. This prevents early ICE
+    // candidates being lost when the other person's channel is still joining.
+    pc.onconnectionstatechange=()=>{
+      if(pc?.connectionState==='connected'){
+        if(disconnectTimer)clearTimeout(disconnectTimer);
+        disconnectTimer=null;
+        status.textContent='Connected! Say hello.';
+      }else if(pc?.connectionState==='failed'){
+        finish(false,false,'Connection failed. Start again to meet someone new.');
+      }else if(pc?.connectionState==='disconnected'){
+        status.textContent='Connection interrupted. Trying to recover…';
+        if(disconnectTimer)clearTimeout(disconnectTimer);
+        disconnectTimer=setTimeout(()=>{
+          if(pc?.connectionState==='disconnected'){
+            finish(false,false,'Connection lost. Start again to reconnect.');
+          }
+        },7000);
+      }
+    };
   }
   async function receive(payload){
     if(!pc||!payload)return;
@@ -57,59 +96,103 @@
       if(pc.signalingState!=='stable')return;
       await pc.setRemoteDescription(payload.description);hasRemoteDescription=true;await flushIce();
       const answer=await pc.createAnswer();await pc.setLocalDescription(answer);
+      await waitForIceGathering(pc);
       await signal({type:'answer',description:pc.localDescription});
     }else if(payload.type==='answer'&&uid<peerId&&!pc.currentRemoteDescription){
       await pc.setRemoteDescription(payload.description);hasRemoteDescription=true;await flushIce();
       if(offerRetry)clearInterval(offerRetry);offerRetry=null;
     }else if(payload.type==='ice'&&payload.candidate){
       if(!hasRemoteDescription)waitingCandidates.push(payload.candidate);else try{await pc.addIceCandidate(payload.candidate);}catch(e){console.warn(e);}
-    }else if(payload.type==='hangup'){status.textContent='The stranger left the chat.';await finish(false,false);}
+    }else if(payload.type==='hangup'){await finish(false,false,'The stranger left the chat.');}
   }
-  async function openSignalChannel(){
+  async function openSignalChannel(generation){
+    const expectedSession=session;
     channel=sb.channel('video:'+session,{config:{private:true}})
-      .on('broadcast',{event:'signal'},({payload})=>receive(payload).catch(e=>{console.error(e);status.textContent='Video connection failed. Try Next.';}))
+      .on('broadcast',{event:'signal'},({payload})=>receive(payload).catch(e=>{
+        console.error('After Dark video signalling error:',e);
+        finish(false,false,'Video connection failed: '+(e.message||'Please try again.'));
+      }))
       .on('broadcast',{event:'chat'},({payload})=>{if(typeof payload?.text==='string')message(payload.text.slice(0,500),false);});
-    await new Promise((resolve,reject)=>channel.subscribe((state,error)=>{
-      if(state==='SUBSCRIBED')resolve();if(state==='CHANNEL_ERROR'||state==='TIMED_OUT')reject(error||new Error('Could not join the private video room.'));
-    }));
+    await new Promise((resolve,reject)=>{
+      let settled=false,timer=null;
+      const settle=(fn,value)=>{
+        if(settled)return;settled=true;
+        if(timer)clearTimeout(timer);
+        fn(value);
+      };
+      timer=setTimeout(()=>settle(reject,new Error('The video room took too long to connect. Please try again.')),15000);
+      channel.subscribe((state,error)=>{
+        if(state==='SUBSCRIBED')settle(resolve);
+        else if(['CHANNEL_ERROR','TIMED_OUT','CLOSED'].includes(state)){
+          settle(reject,error||new Error('Could not join the private video room. Please try again.'));
+        }
+      });
+    });
+    // Stop/Next may have been pressed while the private room was joining.
+    if(!busy||!matched||generation!==searchGeneration||session!==expectedSession)return;
+    if(!stream)throw new Error('Your camera stopped before the video room connected. Press Start to try again.');
     createPeer();
     if(uid<peerId){
-      const makeOffer=async()=>{if(!pc||pc.signalingState!=='stable'||pc.currentRemoteDescription)return;const offer=await pc.createOffer();await pc.setLocalDescription(offer);await signal({type:'offer',description:pc.localDescription});};
+      const makeOffer=async()=>{
+        if(!pc||pc.signalingState!=='stable'||pc.currentRemoteDescription)return;
+        const offer=await pc.createOffer();
+        await pc.setLocalDescription(offer);
+        await waitForIceGathering(pc);
+        await signal({type:'offer',description:pc.localDescription});
+      };
       await makeOffer();
-      offerRetry=setInterval(()=>{if(pc?.signalingState==='have-local-offer')signal({type:'offer',description:pc.localDescription});},2500);
+      offerRetry=setInterval(()=>{
+        if(pc?.signalingState==='have-local-offer'){
+          signal({type:'offer',description:pc.localDescription}).catch(e=>{
+            console.error('Could not resend video offer:',e);
+            finish(false,false,'Video connection signal was interrupted. Please try again.');
+          });
+        }
+      },2500);
     }
   }
-  async function checkMatch(){
-    if(!busy)return;
+  async function checkMatch(generation=searchGeneration){
+    if(!busy || matched || matchCheckInFlight || generation!==searchGeneration)return;
+    matchCheckInFlight=true;
+    try {
     const {data,error}=await sb.rpc('join_after_dark_video_queue',{
       p_gender:$('live-self-gender').value,p_country:$('live-self-country').value,
       p_preferred_gender:$('live-gender').value,p_preferred_country:$('live-country').value
     });
     if(error)throw error;
+    if(!busy || generation!==searchGeneration){
+      if(data?.status==='matched') await sb.rpc('leave_after_dark_video_queue');
+      return;
+    }
     if(data?.status==='matched'){
       clearInterval(poll);poll=null;session=data.session_id;peerId=data.peer_id;matched=true;chatEnabled(true);
-      status.textContent='Stranger found. Connecting…';next.disabled=false;stop.disabled=false;await openSignalChannel();
+      status.textContent='Stranger found. Connecting…';next.disabled=false;stop.disabled=false;await openSignalChannel(generation);
+    }
+    } finally {
+      matchCheckInFlight=false;
     }
   }
   async function startSearch(){
-    if(!age.checked||busy)return;
+    if(busy)return;
+    const generation=++searchGeneration;
     busy=true;matched=false;start.disabled=true;next.disabled=true;stop.disabled=false;chatEnabled(false);chatList.innerHTML='';
     remoteVideo.srcObject=null;remotePlaceholder.hidden=false;
     try{
       await signIn();status.textContent='Allow camera and microphone access…';await getMedia();
-      status.textContent='Looking for a stranger…';await checkMatch();
-      if(busy&&!matched)poll=setInterval(()=>checkMatch().catch(e=>{status.textContent=e.message||'Matching stopped.';finish(false);}),1800);
-    }catch(e){status.textContent=e.message||'Could not start video chat.';await finish(false);}
+      status.textContent='Looking for a stranger…';await checkMatch(generation);
+      if(busy&&!matched&&generation===searchGeneration)poll=setInterval(()=>checkMatch(generation).catch(e=>{finish(false,false,e.message||'Matching stopped. Please try again.');}),1800);
+    }catch(e){await finish(false,false,e.message||'Could not start video chat.');}
   }
-  async function finish(requeue,notifyPeer=true){
-    if(poll)clearInterval(poll);poll=null;if(offerRetry)clearInterval(offerRetry);offerRetry=null;
+  async function finish(requeue,notifyPeer=true,endMessage='Video chat ended. Start again whenever you like.'){
+    searchGeneration+=1;
+    if(poll)clearInterval(poll);poll=null;if(offerRetry)clearInterval(offerRetry);offerRetry=null;if(disconnectTimer)clearTimeout(disconnectTimer);disconnectTimer=null;
     if(channel){if(matched&&notifyPeer){try{await signal({type:'hangup'});}catch(e){console.warn('Could not notify the other participant that the video chat ended.',e);}}await sb.removeChannel(channel);channel=null;}
     if(pc){pc.ontrack=null;pc.close();pc=null;}
     if(sb&&uid){const {error}=await sb.rpc('leave_after_dark_video_queue');if(error)console.warn(error);}
     busy=false;matched=false;session=null;peerId=null;waitingCandidates=[];hasRemoteDescription=false;
     remoteVideo.srcObject=null;remotePlaceholder.hidden=false;stopMedia();chatEnabled(false);
-    next.disabled=true;stop.disabled=true;start.disabled=!age.checked;
-    if(requeue&&age.checked){await startSearch();}else if(status.textContent!=='The stranger left the chat.')status.textContent='Video chat ended. Start again whenever you like.';
+    next.disabled=true;stop.disabled=true;start.disabled=false;
+    if(requeue){await startSearch();}else status.textContent=endMessage;
   }
   start.addEventListener('click',startSearch);
   next.addEventListener('click',()=>{status.textContent='Finding your next stranger…';finish(true);});
@@ -118,7 +201,7 @@
     e.preventDefault();const text=chatInput.value.trim();if(!text||!channel)return;
     chatInput.value='';message(text,true);await channel.send({type:'broadcast',event:'chat',payload:{text:text.slice(0,500)}});
   });
-  window.addEventListener('pagehide',()=>{if(pc)pc.close();if(stream)stream.getTracks().forEach(t=>t.stop());if(sb&&uid)sb.rpc('leave_after_dark_video_queue');});
+  window.addEventListener('pagehide',()=>{if(disconnectTimer)clearTimeout(disconnectTimer);if(pc)pc.close();if(stream)stream.getTracks().forEach(t=>t.stop());if(sb&&uid)sb.rpc('leave_after_dark_video_queue');});
 
   const cameraSelect=$('camera-device'), micSelect=$('microphone-device'), flipButton=$('flip-camera');
   let cameraFacing='user';
